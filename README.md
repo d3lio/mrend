@@ -88,3 +88,8 @@ Plugins reside in `src/backend/plugins`. The order in which they are executed is
 
 For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins) or open an issue for help.
 A plugins API documentation is on the way!
+
+# TODO
+
+* List animations
+* Code block animations
