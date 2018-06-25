@@ -1,0 +1,16 @@
+{
+  "name": "mrend",
+  "version": "1.0.0",
+  "description": "Markdown presentation renderer",
+  "main": "index.js",
+  "author": "Delyan Dobrev",
+  "license": "MIT",
+  "scripts": {
+    "build": "node src/backend/index"
+  },
+  "dependencies": {
+    "katex": "^0.10.0-beta",
+    "showdown": "^1.8.6",
+    "showdown-highlight": "^2.1.0"
+  }
+}

@@ -1,0 +1,62 @@
+h1, h2, h3, h4, h5 {
+    margin-top: 0px;
+}
+
+slide {
+    display: none;
+    flex-direction: column;
+    width: 50%;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+img {
+    width: 100%;
+}
+
+div.code-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 1rem 0px;
+    border: 1px solid #DDD;
+    border-radius: 7px;
+    box-shadow: 5px 5px #EEE;
+}
+
+div.code-block div.code-container {
+    display: flex;
+    flex-direction: row;
+}
+div.code-block div.rustc-container {
+    /* scale the font with the container so we don't get scrollers */
+    font-size: 1vw;
+    border-top: 1px solid #DDD;
+}
+
+div.code-block pre {
+    width: 100%;
+    margin: 0px !important;
+    border-radius: 7px;
+}
+div.code-block pre > code {
+    box-sizing: border-box;
+    height: 100%;
+    border-radius: 0px 7px 7px 0px;
+}
+div.code-block pre > rustc {
+    box-sizing: border-box;
+    height: 100%;
+    padding: 1em;
+    border-radius: 0px 0px 7px 7px;
+}
+
+div.code-block div.line-numbers {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: monospace;
+    padding: 0 1rem;
+    border-right: 1px solid #DDD;
+    border-radius: 7px 0 0 7px;
+}

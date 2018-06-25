@@ -1,0 +1,16 @@
+{
+    "parseImgDimensions": true,
+    "simplifiedAutoLink": true,
+    "excludeTrailingPunctuationFromURLs": true,
+    "openLinksInNewWindow": true,
+    "strikethrough": true,
+    "tasklists": true,
+    "disableForced4SpacesIndentedSublists": false,
+    "simpleLineBreaks": false,
+    "requireSpaceBeforeHeadingText": true,
+    "emoji": true,
+    "underline": true,
+    "completeHTMLDocument": false,
+    "metadata": true,
+    "splitAdjacentBlockquotes": true
+}
