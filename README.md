@@ -2,6 +2,8 @@
 
 A markdown presentation generator tool
 
+![](screenshots/example1.jpg)
+
 # Default configuration
 
 `mrend` comes with some plugins that are preset for FMI's Rust course.
@@ -78,9 +80,11 @@ syntax to remember which closely resembles Rust's doc tests.
 * `# // norun` on the first line of the code block indicates that the code will be compiled but not runned.
 * `# // ignore` on the first line of the code block indicates that the code will not be compiled nor runned.
 
+![](screenshots/example2.jpg)
+
 # Plugins
 
-Plugins reside in `src/backend/plugins`. The order in which they are executed is defined in `src/backend/plugins.json`.
+Plugins reside in `src/backend/plugins`. The order in which they are executed is defined by `src/backend/plugins.json`.
 
 For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins) or open an issue for help.
 A plugins API documentation is on the way!
