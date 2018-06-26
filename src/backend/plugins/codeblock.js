@@ -1,4 +1,4 @@
-module.exports = (metadata) => ({
+module.exports = () => ({
     phase: 'after',
     css: './assets/css/code-block.css',
     pattern: /(<pre><code[\s\S]*?<\/code><\/pre>)(?:[\s]*(<pre><rustc[\s\S]*?<\/pre>))?/gm,
@@ -10,10 +10,10 @@ module.exports = (metadata) => ({
         }
 
         const rustcTemplate = rustc ?
-        `<div class="rustc-container">
-            ${rustc}
-        </div>`
-        : '';
+            `<div class="rustc-container">
+                ${rustc}
+            </div>`
+            : '';
 
         return `
         <div class="code-block">
@@ -23,5 +23,5 @@ module.exports = (metadata) => ({
             </div>
             ${rustcTemplate}
         </div>`;
-    }
+    },
 });

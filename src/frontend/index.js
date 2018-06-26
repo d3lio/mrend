@@ -1,7 +1,9 @@
-window.onload = function logic() {
+window.onload = function onload() {
     let currentSlide = 0;
     const slides = document.body.querySelectorAll('slide');
+
     toggleSlide(0);
+
     function toggleSlide(idx) {
         if (getComputedStyle(slides[idx]).display === 'none') {
             slides[idx].style.display = 'flex';
@@ -11,6 +13,7 @@ window.onload = function logic() {
             slides[idx].classList.remove('active');
         }
     }
+
     window.addEventListener('keydown', event => {
         // left, up
         if ((event.keyCode === 37 || event.keyCode === 38) && currentSlide > 0) {
@@ -26,4 +29,4 @@ window.onload = function logic() {
             toggleSlide(currentSlide);
         }
     });
-}
+};

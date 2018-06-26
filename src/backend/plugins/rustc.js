@@ -8,8 +8,10 @@ const config = {
     tempMainPath: './rust',
 };
 
-const IGNORE_PATTERN = /^\/\/ *ignore/m
-const NORUN_PATTERN = /^\/\/ *norun/m
+const SHOW_PATTERN = /^# .*$/gm;
+const MAIN_PATTERN = /^# /gm;
+const IGNORE_PATTERN = /^\/\/ *ignore/m;
+const NORUN_PATTERN = /^\/\/ *norun/m;
 const ERROR_PATTERN = '\n\nerror: aborting due to previous error';
 
 try {
@@ -18,7 +20,6 @@ try {
 } catch(e) {
     mkdirSync(config.tempMainPath);
 }
-
 
 let tempFileNo = 0;
 
@@ -35,18 +36,18 @@ function run(file) {
         const result = child_process.execSync(`${config.runCmd} ${file} -o ${file}.exe 2>&1`);
         if (result.length) return result;
 
-        return child_process.execFileSync(`${file}.exe`)
+        return child_process.execFileSync(`${file}.exe`);
     } catch (e) {
         return e.stdout;
     }
 }
 
-module.exports = (metadata) => ({
+module.exports = () => ({
     phase: 'before',
     pattern: /```rust([\s\S]*?)```/gm,
     run(_, code) {
-        const show = code.replace(/^# .*$/gm, '').trim();
-        const main = code.replace(/^# /gm, '').trim();
+        const show = code.replace(SHOW_PATTERN, '').trim();
+        const main = code.replace(MAIN_PATTERN, '').trim();
 
         const template1 = `\`\`\`rust\n${show}\n\`\`\``;
         if (IGNORE_PATTERN.test(main)) {
@@ -57,8 +58,7 @@ module.exports = (metadata) => ({
         tempFileNo++;
         writeFileSync(fileName, main);
 
-        const result = (
-            NORUN_PATTERN.test(main)
+        const result = (NORUN_PATTERN.test(main)
             ? typeCheck(fileName)
             : run(fileName)
         ).toString().trim();
@@ -69,8 +69,7 @@ module.exports = (metadata) => ({
 
         const tmiBegin = result.indexOf(ERROR_PATTERN);
         const output = tmiBegin === -1 ? result : result.slice(0, tmiBegin);
-        const template2 = `<pre><rustc class="hljs">${result}</rustc></pre>`
+        const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
         return template1 + template2;
-
-    }
+    },
 });

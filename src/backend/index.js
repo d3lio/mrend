@@ -16,7 +16,6 @@ const metadata = (function parseMetadata() {
 }());
 
 const title = metadata.title || 'Untitled presentation';
-const theme = metadata.theme || 'github';
 const outputFile = metadata.output || 'untitled.html';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
@@ -48,11 +47,11 @@ const showdownPlugins = (function plugins(metadata) {
             type,
             regex: plugin.pattern,
             replace: plugin.run,
-        }]
+        }];
     });
 }(metadata));
 
-console.log(`\nparsing slides: ${input}`);
+console.log(`parsing slides: ${input}`);
 
 const converter = new showdown.Converter(Object.assign(
     require('./config.json'), {
@@ -61,12 +60,10 @@ const converter = new showdown.Converter(Object.assign(
 ));
 converter.setFlavor('github');
 
-const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => {
-    if (key.startsWith('html-')) {
-        acc += `<meta name="${key.slice(5)}" content="${val}">`
-    }
-    return acc;
-}, '');
+const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => key.startsWith('html-')
+    ? acc + `<meta name="${key.slice(5)}" content="${val}">`
+    : acc,
+'');
 const css = styleSheets.reduce((acc, ss) => acc + `<link rel="stylesheet" href="${ss}">`, '');
 const html = slides.slice(1).reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
 
@@ -93,7 +90,7 @@ ${html}
 </html>
 `;
 
-console.log('presentation:', outputFile);
-
 fs.writeFileSync(outputFile, template);
+
+console.log('presentation:', outputFile);
 
