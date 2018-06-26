@@ -7,7 +7,7 @@ A markdown presentation generator tool
 # Default configuration
 
 `mrend` comes with some plugins that are preset for FMI's Rust course.
-Of course you can tweak them or remove them whatsoever and make it work for your own needs.
+Of course you can tweak them or remove them whatsoever to make it work for your own needs.
 
 # Getting started
 
@@ -15,6 +15,9 @@ Of course you can tweak them or remove them whatsoever and make it work for your
 
 You will need [Node.js](https://nodejs.org/) and [Yarn](https://yarnpkg.com/).
 Npm could work as well but who would use that anyway ;)
+
+If you intend to use the Rust plugin you will also need [rustup](https://rustup.rs/) with
+stable and nightly toolchains.
 
 ### Setup
 
@@ -77,19 +80,24 @@ syntax to remember which closely resembles Rust's doc tests.
 
 * by default all Rust code blocks are compiled and executed and the output is shown below the block
 * `# ` (# followed by 1 space) prepends code that will be used by the compiler but not shown to the user
-* `# // norun` on the first line of the code block indicates that the code will be compiled but not runned.
-* `# // ignore` on the first line of the code block indicates that the code will not be compiled nor runned.
+* `# // norun` on the first line of the code block indicates that the code will be compiled but not runned
+* `# // ignore` on the first line of the code block indicates that the code will not be compiled nor runned
 
 ![](screenshots/example2.jpg)
 
 # Plugins
 
-Plugins reside in `src/backend/plugins`. The order in which they are executed is defined by `src/backend/plugins.json`.
+Plugins reside in `src/backend/plugins`. The order in which they are executed is defined by
+`src/backend/plugins.json`.
 
-For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins) or open an issue for help.
+For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins)
+or open an issue for help. You can also checkout
+[showdownjs extensions](https://github.com/showdownjs/showdown/wiki/extensions)
+
 A plugins API documentation is on the way!
 
 # TODO
 
 * List animations
 * Code block animations
+* Side by side code blocks

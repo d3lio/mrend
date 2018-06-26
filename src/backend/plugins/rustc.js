@@ -1,6 +1,6 @@
 const child_process = require('child_process');
 const path = require('path');
-const { readdirSync, unlinkSync, writeFileSync } = require('fs');
+const { mkdirSync, readdirSync, unlinkSync, writeFileSync } = require('fs');
 
 const config = {
     typeCheckCmd: 'rustup run nightly rustc',
@@ -8,9 +8,17 @@ const config = {
     tempMainPath: './rust',
 };
 
+const IGNORE_PATTERN = /^\/\/ *ignore/m
+const NORUN_PATTERN = /^\/\/ *norun/m
 const ERROR_PATTERN = '\n\nerror: aborting due to previous error';
 
-readdirSync(config.tempMainPath).forEach(file => unlinkSync(path.join(config.tempMainPath, file)));
+try {
+    const files = readdirSync(config.tempMainPath);
+    files.forEach(file => unlinkSync(path.join(config.tempMainPath, file)));
+} catch(e) {
+    mkdirSync(config.tempMainPath);
+}
+
 
 let tempFileNo = 0;
 
@@ -41,7 +49,7 @@ module.exports = (metadata) => ({
         const main = code.replace(/^# /gm, '').trim();
 
         const template1 = `\`\`\`rust\n${show}\n\`\`\``;
-        if (main.startsWith('// ignore')) {
+        if (IGNORE_PATTERN.test(main)) {
             return template1;
         }
 
@@ -50,17 +58,18 @@ module.exports = (metadata) => ({
         writeFileSync(fileName, main);
 
         const result = (
-            main.startsWith('// norun')
+            NORUN_PATTERN.test(main)
             ? typeCheck(fileName)
             : run(fileName)
-        ).toString();
+        ).toString().trim();
 
-        if (!result.trim()) {
+        if (!result) {
             return template1;
         }
 
         const tmiBegin = result.indexOf(ERROR_PATTERN);
-        const template2 = `<pre><rustc class="hljs">${result.slice(0, tmiBegin)}</rustc></pre>`
+        const output = tmiBegin === -1 ? result : result.slice(0, tmiBegin);
+        const template2 = `<pre><rustc class="hljs">${result}</rustc></pre>`
         return template1 + template2;
 
     }

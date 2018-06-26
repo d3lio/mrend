@@ -39,7 +39,6 @@ fn main() {
 
 ```rust
 # // norun
-# #[allow(dead_code)]
 struct A {
     a: u32,
     b: Vec<Box<Iterator<Item=u8>>>
