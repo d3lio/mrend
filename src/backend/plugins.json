@@ -1,4 +1,5 @@
 [
+    "wrapping-pages",
     "rustc",
     "highlight",
     "katex",

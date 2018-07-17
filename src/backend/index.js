@@ -5,7 +5,9 @@ const showdown = require('showdown');
 const input = process.argv[2];
 if (!input) throw new Error('Input file not specified');
 
-const slides = fs.readFileSync(input, 'UTF8').split('---\n').slice(1);
+console.log('markdown:', input);
+
+let slides = fs.readFileSync(input, 'UTF8').split('---\n').slice(1);
 
 console.log('parsing metadata');
 
@@ -15,14 +17,18 @@ const metadata = (function parseMetadata() {
     return metadataConverter.getMetadata();
 }());
 
+slides = slides.slice(1);
+
 const title = metadata.title || 'Untitled presentation';
 const outputFile = metadata.output || 'untitled.html';
+const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
 
 console.log('metadata:', JSON.stringify(metadata, null, 4));
 
 const styleSheets = [];
+const extendPlugins =[];
 const showdownPlugins = (function plugins(metadata) {
     // functional switch
     function cond(val, arms, def) {
@@ -30,42 +36,58 @@ const showdownPlugins = (function plugins(metadata) {
         return res ? res[1](val) : def(val);
     }
 
-    return require('./plugins.json').map(file => {
-        console.log('loading plugin:', file);
+    return require('./plugins.json').reduce((plugins, name) => {
+        console.log('loading plugin:', name);
 
-        const pluginPath = path.join(__dirname, 'plugins', file);
-        const plugin = require(pluginPath)(metadata);
+        const file = path.join(__dirname, 'plugins', name);
+        const plugin = require(file)(metadata);
+
         if (plugin.css) styleSheets.push(plugin.css);
-        if (plugin.external) return plugin.external;
+        if (plugin.external) {
+            plugins.push(plugin.external);
+            return plugins;
+        }
+        if (plugin.phase === 'extend') {
+            extendPlugins.push(plugin);
+            return plugins;
+        }
 
         const type = cond(plugin.phase, [
             ['before', () => 'lang'],
             ['after', () => 'output'],
-        ], () => { throw new Error(`Invalid phase ${plugin.phase}`); });
+        ], () => {
+            throw new Error(`Invalid phase ${plugin.phase}`);
+        });
 
-        return () => [{
+        plugins.push(() => [{
             type,
             regex: plugin.pattern,
             replace: plugin.run,
-        }];
-    });
+        }]);
+
+        return plugins;
+    }, []);
 }(metadata));
 
-console.log(`parsing slides: ${input}`);
+if (extendPlugins.length) {
+    console.log('extending slides');
+    slides = extendPlugins.reduce((slides, plugin) => plugin.run(slides), slides);
+}
 
-const converter = new showdown.Converter(Object.assign(
-    require('./config.json'), {
-        extensions: showdownPlugins,
-    }
-));
+console.log('parsing slides');
+
+const converter = new showdown.Converter(Object.assign(require('./config.json'), {
+    extensions: showdownPlugins,
+}));
 converter.setFlavor('github');
 
-const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => key.startsWith('html-')
-    ? acc + `<meta name="${key.slice(5)}" content="${val}">`
+const htmlMetaKeys = new Set(['author', 'keywords', 'description']);
+const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => htmlMetaKeys.has(key)
+    ? acc + `<meta name="${key}" content="${val}">`
     : acc,
 '');
-const css = styleSheets.reduce((acc, ss) => acc + `<link rel="stylesheet" href="${ss}">`, '');
-const html = slides.slice(1).reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
+const css = styleSheets.reduce((acc, sheet) => acc + `<link rel="stylesheet" href="${sheet}">`, '');
+const html = slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
 
 const template = `
 <!DOCTYPE html>
@@ -80,6 +102,9 @@ const template = `
         html {
             font-size: ${fontSize};
             font-family: ${fontFamily};
+        }
+        slide {
+            width: ${slideWidth};
         }
     </style>
     <script src="./src/frontend/index.js"></script>

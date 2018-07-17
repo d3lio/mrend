@@ -1,9 +1,10 @@
 ---
 title: Presentation
-html-author: myself
-html-keywords: rust,fmi
-html-description: lecture about something
-font-size: 28px
+author: myself
+keywords: rust,fmi
+description: lecture about something
+slide-width: 50%
+font-size: 20px
 font-family: Arial, Helvetica, sans-serif
 # code blocks color theme
 theme: github
@@ -77,6 +78,7 @@ class A {
 ![img](http://qnimate.com/wp-content/uploads/2014/03/images2.jpg)
 
 ---
+
 # Test slide
 
 ```rust
