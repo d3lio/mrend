@@ -73,6 +73,24 @@ content
 more content!
 ```
 
+### Animated slides
+
+The slides can be split into animated parts. Lets say we have a list and we want to show the bullets
+one by one. This can be achieved by using `--`:
+
+```
+# Slide
+
+* Item1
+--
+* Item2
+--
+  - Subitem
+```
+
+The generated presentation will contain a slide for each split to create the fealing for an animated list.
+When changing slides instead of going to the next whole slide you will render the next subslide segment.
+
 ### Rust code
 
 With the default preset there is a plugin that verifies the rust code blocks. There is some special
@@ -91,7 +109,7 @@ Plugins reside in `src/backend/plugins`. The order in which they are executed is
 `src/backend/plugins.json`.
 
 For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins)
-or open an issue for help. You can also checkout
+or open an issue for help. You can also check out
 [showdownjs extensions](https://github.com/showdownjs/showdown/wiki/extensions)
 
 A plugins API documentation is on the way!

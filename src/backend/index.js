@@ -27,7 +27,8 @@ const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
 
 console.log('metadata:', JSON.stringify(metadata, null, 4));
 
-const styleSheets = [];
+const styleSheets = ['./assets/css/global.css'];
+const javaScripts = ['./src/frontend/index.js'];
 const extendPlugins =[];
 const showdownPlugins = (function plugins(metadata) {
     // functional switch
@@ -71,7 +72,7 @@ const showdownPlugins = (function plugins(metadata) {
 
 if (extendPlugins.length) {
     console.log('extending slides');
-    slides = extendPlugins.reduce((slides, plugin) => plugin.run(slides), slides);
+    slides = extendPlugins.reduce((slides, plugin) => plugin.run(slides) || slides, slides);
 }
 
 console.log('parsing slides');
@@ -87,6 +88,9 @@ const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => htmlMetaKe
     : acc,
 '');
 const css = styleSheets.reduce((acc, sheet) => acc + `<link rel="stylesheet" href="${sheet}">`, '');
+const scripts = javaScripts.reduce((acc, js) => {
+    return acc + `<script type="text/javascript" src="${js}"></script>`;
+}, '');
 const html = slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
 
 const template = `
@@ -97,7 +101,6 @@ const template = `
     <meta charset="UTF-8">
     ${htmlMeta}
     ${css}
-    <link rel="stylesheet" href="./assets/css/global.css">
     <style>
         html {
             font-size: ${fontSize};
@@ -107,7 +110,7 @@ const template = `
             width: ${slideWidth};
         }
     </style>
-    <script src="./src/frontend/index.js"></script>
+    ${scripts}
 </head>
 <body>
 ${html}
