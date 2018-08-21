@@ -1,6 +1,6 @@
 module.exports = () => ({
     phase: 'after',
-    css: './assets/css/code-block.css',
+    css: 'codeblock.css',
     pattern: /(<pre><code[\s\S]*?<\/code><\/pre>)(?:[\s]*(<pre><rustc[\s\S]*?<\/pre>))?/gm,
     run(_, code, rustc) {
         const lines = code.trim().split('\n').length;

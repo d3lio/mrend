@@ -1,4 +1,6 @@
 [
+    "global",
+    "frontend",
     "subslides",
     "wrapping-pages",
     "rustc",

@@ -23,15 +23,18 @@ stable and nightly toolchains.
 
 Clone this repo using `git clone https://github.com/d3lio/mrend.git`.
 
-Navigate into the folder where you cloned the tool and run `yarn install`.
+Navigate into the folder where you cloned the tool and run `yarn global add file:$PWD`.
+
+This will install it globally to use as `mrend`.
 
 ### Build a presentation
 
-To build a presentation do `yarn run build <path/to/file.md>`.
+To build a presentation do `mrend <path/to/file.md>`.
 
-To build the example presentation do `yarn run build example.md`. It will generate `output.html`.
+To build the example presentation do `mrend example.md`.
+It will generate a folder called `output` containing `output.html`.
 
-Open the output into your preferred browser and enjoy.
+Open the html file into your preferred browser and enjoy.
 
 # Usage
 

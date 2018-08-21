@@ -1,9 +1,27 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
 const showdown = require('showdown');
+const utils = require('./utils');
+
+const p = path.join.bind(path);
+
+const BUNDLE_DIR = p(process.cwd(), 'output');
+const BUNDLE_RESOURCES_DIR = 'resources';
+const PLUGINS_DIR = p(__dirname, 'plugins');
+const PHASE = {
+    RESOURCE: 'resource',
+    EXTEND: 'extend',
+    BEFORE: 'before',
+    AFTER: 'after',
+};
 
 const input = process.argv[2];
-if (!input) throw new Error('Input file not specified');
+if (!input) {
+    console.error('Input file not specified.');
+    return;
+}
 
 console.log('markdown:', input);
 
@@ -27,10 +45,10 @@ const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
 
 console.log('metadata:', JSON.stringify(metadata, null, 4));
 
-const styleSheets = ['./assets/css/global.css'];
-const javaScripts = ['./src/frontend/index.js'];
+const styleSheets = [];
+const javaScripts = [];
 const extendPlugins =[];
-const showdownPlugins = (function plugins(metadata) {
+const showdownPlugins = (function plugins() {
     // functional switch
     function cond(val, arms, def) {
         const res = arms.find(([cond]) => val === cond);
@@ -40,22 +58,28 @@ const showdownPlugins = (function plugins(metadata) {
     return require('./plugins.json').reduce((plugins, name) => {
         console.log('loading plugin:', name);
 
-        const file = path.join(__dirname, 'plugins', name);
+        const file = p(PLUGINS_DIR, name);
         const plugin = require(file)(metadata);
 
-        if (plugin.css) styleSheets.push(plugin.css);
+        if (plugin.css) styleSheets.push(p(PLUGINS_DIR, name, plugin.css));
+        if (plugin.js) javaScripts.push(p(PLUGINS_DIR, name, plugin.js));
+        if (plugin.init) plugin.init(utils);
+
+        // Handle external plugins that are native to showdownjs
         if (plugin.external) {
             plugins.push(plugin.external);
             return plugins;
         }
-        if (plugin.phase === 'extend') {
+
+        if (plugin.phase === PHASE.RESOURCE) return plugins;
+        if (plugin.phase === PHASE.EXTEND) {
             extendPlugins.push(plugin);
             return plugins;
         }
 
         const type = cond(plugin.phase, [
-            ['before', () => 'lang'],
-            ['after', () => 'output'],
+            [PHASE.BEFORE, () => 'lang'],
+            [PHASE.AFTER, () => 'output'],
         ], () => {
             throw new Error(`Invalid phase ${plugin.phase}`);
         });
@@ -68,7 +92,7 @@ const showdownPlugins = (function plugins(metadata) {
 
         return plugins;
     }, []);
-}(metadata));
+}());
 
 if (extendPlugins.length) {
     console.log('extending slides');
@@ -82,13 +106,21 @@ const converter = new showdown.Converter(Object.assign(require('./config.json'),
 }));
 converter.setFlavor('github');
 
+console.log('assembling output');
+
 const htmlMetaKeys = new Set(['author', 'keywords', 'description']);
 const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => htmlMetaKeys.has(key)
     ? acc + `<meta name="${key}" content="${val}">`
     : acc,
 '');
-const css = styleSheets.reduce((acc, sheet) => acc + `<link rel="stylesheet" href="${sheet}">`, '');
-const scripts = javaScripts.reduce((acc, js) => {
+const css = styleSheets.reduce((acc, sheet) => {
+    const basename = path.basename(sheet);
+    const css = p(BUNDLE_RESOURCES_DIR, basename);
+    return acc + `<link rel="stylesheet" href="${css}">`;
+}, '');
+const scripts = javaScripts.reduce((acc, script) => {
+    const basename = path.basename(script);
+    const js = p(BUNDLE_RESOURCES_DIR, basename);
     return acc + `<script type="text/javascript" src="${js}"></script>`;
 }, '');
 const html = slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
@@ -118,7 +150,25 @@ ${html}
 </html>
 `;
 
-fs.writeFileSync(outputFile, template);
+console.log('preparing bundle');
 
-console.log('presentation:', outputFile);
+function deleteFolderRecursiveSync(path) {
+    if (!fs.existsSync(path)) return;
+    fs.readdirSync(path).forEach(file => {
+        const curPath = p(path, file);
+        fs.lstatSync(curPath).isDirectory()
+            ? deleteFolderRecursiveSync(curPath)
+            : fs.unlinkSync(curPath);
+    });
+    fs.rmdirSync(path);
+}
 
+deleteFolderRecursiveSync(BUNDLE_DIR);
+fs.mkdirSync(BUNDLE_DIR, 0o755);
+fs.mkdirSync(p(BUNDLE_DIR, BUNDLE_RESOURCES_DIR), 0o755);
+fs.writeFileSync(p(BUNDLE_DIR, outputFile), template);
+const resourceDir = p(BUNDLE_DIR, BUNDLE_RESOURCES_DIR);
+styleSheets.forEach(css => utils.copyFileSync(css, resourceDir));
+javaScripts.forEach(js => utils.copyFileSync(js, resourceDir));
+
+console.log('presentation: ', p(BUNDLE_DIR, outputFile));
