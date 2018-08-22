@@ -2,13 +2,13 @@
 title: Presentation
 author: myself
 keywords: rust,fmi
-description: lecture about something
+description: lecture about stuff
 slide-width: 50%
 font-size: 20px
 font-family: Arial, Helvetica, sans-serif
 # code blocks color theme
 theme: github
-output: output.html
+outputDir: output
 ---
 
 # Introduction

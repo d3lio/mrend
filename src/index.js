@@ -7,16 +7,6 @@ const utils = require('./utils');
 
 const p = path.join.bind(path);
 
-const BUNDLE_DIR = p(process.cwd(), 'output');
-const BUNDLE_RESOURCES_DIR = 'resources';
-const PLUGINS_DIR = p(__dirname, 'plugins');
-const PHASE = {
-    RESOURCE: 'resource',
-    EXTEND: 'extend',
-    BEFORE: 'before',
-    AFTER: 'after',
-};
-
 const input = process.argv[2];
 if (!input) {
     console.error('Input file not specified.');
@@ -38,10 +28,20 @@ const metadata = (function parseMetadata() {
 slides = slides.slice(1);
 
 const title = metadata.title || 'Untitled presentation';
-const outputFile = metadata.output || 'untitled.html';
+const outputDir = metadata.outputDir || 'untitled';
 const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
+
+const BUNDLE_DIR = p(process.cwd(), outputDir);
+const BUNDLE_RESOURCES_DIR = 'resources';
+const PLUGINS_DIR = p(__dirname, 'plugins');
+const PHASE = {
+    RESOURCE: 'resource',
+    EXTEND: 'extend',
+    BEFORE: 'before',
+    AFTER: 'after',
+};
 
 console.log('metadata:', JSON.stringify(metadata, null, 4));
 
@@ -101,10 +101,14 @@ if (extendPlugins.length) {
 
 console.log('parsing slides');
 
-const converter = new showdown.Converter(Object.assign(require('./config.json'), {
-    extensions: showdownPlugins,
-}));
-converter.setFlavor('github');
+const html = (function parsingSlides() {
+    const converter = new showdown.Converter(Object.assign(require('./config.json'), {
+        extensions: showdownPlugins,
+    }));
+    converter.setFlavor('github');
+
+    return slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
+}());
 
 console.log('assembling output');
 
@@ -123,7 +127,6 @@ const scripts = javaScripts.reduce((acc, script) => {
     const js = p(BUNDLE_RESOURCES_DIR, basename);
     return acc + `<script type="text/javascript" src="${js}"></script>`;
 }, '');
-const html = slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
 
 const template = `
 <!DOCTYPE html>
@@ -152,23 +155,15 @@ ${html}
 
 console.log('preparing bundle');
 
-function deleteFolderRecursiveSync(path) {
-    if (!fs.existsSync(path)) return;
-    fs.readdirSync(path).forEach(file => {
-        const curPath = p(path, file);
-        fs.lstatSync(curPath).isDirectory()
-            ? deleteFolderRecursiveSync(curPath)
-            : fs.unlinkSync(curPath);
-    });
-    fs.rmdirSync(path);
-}
-
-deleteFolderRecursiveSync(BUNDLE_DIR);
-fs.mkdirSync(BUNDLE_DIR, 0o755);
-fs.mkdirSync(p(BUNDLE_DIR, BUNDLE_RESOURCES_DIR), 0o755);
-fs.writeFileSync(p(BUNDLE_DIR, outputFile), template);
+const outputHtml = p(BUNDLE_DIR, 'index.html');
 const resourceDir = p(BUNDLE_DIR, BUNDLE_RESOURCES_DIR);
+
+utils.deleteFolderRecursiveSync(BUNDLE_DIR);
+fs.mkdirSync(BUNDLE_DIR, 0o755);
+fs.mkdirSync(resourceDir, 0o755);
+fs.writeFileSync(outputHtml, template);
+
 styleSheets.forEach(css => utils.copyFileSync(css, resourceDir));
 javaScripts.forEach(js => utils.copyFileSync(js, resourceDir));
 
-console.log('presentation: ', p(BUNDLE_DIR, outputFile));
+console.log('presentation: ', outputHtml);

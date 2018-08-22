@@ -23,16 +23,18 @@ stable and nightly toolchains.
 
 Clone this repo using `git clone https://github.com/d3lio/mrend.git`.
 
-Navigate into the folder where you cloned the tool and run `yarn global add file:$PWD`.
+Navigate into the folder where you cloned the tool.
+For *nix systems run `yarn global add file:$PWD`.
+For Windows run `yarn global add file:%cd%`.
 
 This will install it globally to use as `mrend`.
 
 ### Build a presentation
 
-To build a presentation do `mrend <path/to/file.md>`.
+To build a presentation run `mrend <path/to/file.md>`.
 
-To build the example presentation do `mrend example.md`.
-It will generate a folder called `output` containing `output.html`.
+To build the example presentation run `mrend example.md`.
+It will generate a folder called `output` containing `index.html`.
 
 Open the html file into your preferred browser and enjoy.
 
@@ -47,7 +49,7 @@ Every `mrend` presentation has a metadata header that looks like this
 ```
 ---
 title: My Presentation
-output: output.html
+outputDir: output
 ---
 ```
 
@@ -55,8 +57,9 @@ This way you can configure your presentation without having to pass any special 
 Each presentation has its own such properties and you won't have to remember to pass them
 every time you need to rebuild the presentation.
 
-The above example declares two properties - the `title` and the `output`. The former is your
-presentation's title. The latter is the file in which `mrend` will generate the presentation.
+The above example declares two properties - the `title` and the `outputDir`. The former is your
+presentation's title. The latter is the folder in which `mrend` will generate the presentation.
+It is relative to you current working directory.
 
 To see the whole set of properties go to [example.md](example.md)
 

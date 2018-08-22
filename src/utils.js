@@ -9,4 +9,14 @@ module.exports = {
         const data = fs.readFileSync(source, 'UTF8');
         fs.writeFileSync(path.join(destination, basename), data);
     },
+    deleteFolderRecursiveSync(dirPath) {
+        if (!fs.existsSync(dirPath)) return;
+        for (let file of fs.readdirSync(dirPath)) {
+            const curPath = path.join(dirPath, file);
+            fs.lstatSync(curPath).isDirectory()
+                ? this.deleteFolderRecursiveSync(curPath)
+                : fs.unlinkSync(curPath);
+        }
+        fs.rmdirSync(dirPath);
+    },
 };
