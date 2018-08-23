@@ -1,10 +1,14 @@
 [
     "global",
     "frontend",
+
     "subslides",
     "wrapping-pages",
+
+    "splitview",
     "rustc",
     "highlight",
     "katex",
+
     "codeblock"
 ]

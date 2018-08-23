@@ -67,12 +67,21 @@ let b: String = a;
   - item 3
 --
 
+%%
 ```cpp
 class A {
   public:
-    int counter = 0;
+    int counter;
 }
 ```
+%%
+```rust
+# // ignore
+struct A {
+    pub counter: i32;
+}
+```
+%%
 
 ---
 

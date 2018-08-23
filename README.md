@@ -53,7 +53,7 @@ outputDir: output
 ---
 ```
 
-This way you can configure your presentation without having to pass any special arguments to `mrend`.
+You can configure your presentation without having to pass any special arguments to `mrend`.
 Each presentation has its own such properties and you won't have to remember to pass them
 every time you need to rebuild the presentation.
 

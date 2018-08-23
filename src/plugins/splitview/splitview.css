@@ -1,0 +1,9 @@
+div.split-view {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+div.split-view > div.lhs, div.rhs {
+    width: 49%;
+}

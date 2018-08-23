@@ -16,12 +16,12 @@ module.exports = () => ({
             : '';
 
         return `
-        <div class="code-block">
-            <div class="code-container">
-                <div class="line-numbers hljs">${lineNumbers}</div>
-                ${code}
-            </div>
-            ${rustcTemplate}
-        </div>`;
+            <div class="code-block">
+                <div class="code-container">
+                    <div class="line-numbers hljs">${lineNumbers}</div>
+                    ${code}
+                </div>
+                ${rustcTemplate}
+            </div>`;
     },
 });
