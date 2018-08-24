@@ -68,7 +68,7 @@ To see the whole set of properties go to [example.md](example.md)
 Of course this wouldn't be a presentation generator if it couldn't create slides.
 To do so mrend uses `---` as a slide separator. For example
 
-```
+```md
 # Slide 1
 
 content
@@ -97,6 +97,28 @@ one by one. This can be achieved by using `--`:
 The generated presentation will contain a slide for each split to create the fealing for an animated list.
 When changing slides instead of going to the next whole slide you will render the next subslide segment.
 
+### Split view
+
+Sometimes you might need to compare two things or maybe create a pros and cons columns.
+This can be achived using the split view syntax.
+
+```md
+# Review slide
+
+%%
+# Pros
+
+* Easy to use
+* Supports markdown
+%%
+# Cons
+
+* Animations don't work inside
+%%
+```
+
+The pros will be displayed on the left and cons on the right.
+
 ### Rust code
 
 With the default preset there is a plugin that verifies the rust code blocks. There is some special
@@ -122,6 +144,5 @@ A plugins API documentation is on the way!
 
 # TODO
 
-* List animations
-* Code block animations
-* Side by side code blocks
+* Code block spot light and animations
+* Split view animations
