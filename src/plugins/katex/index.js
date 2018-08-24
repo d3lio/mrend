@@ -1,14 +1,20 @@
+const fs = require('fs-extra');
 const path = require('path');
 const katex = require('katex');
-const css = 'katex.min.css';
 
-module.exports = () => ({
-    init(utils) {
-        const file = path.join(utils.MODULES_DIR, `katex/dist/${css}`);
-        utils.copyFileSync(file, __dirname);
-    },
-    phase: 'before',
-    css,
-    pattern: /¨D¨D([\s\S]*?)¨D¨D/gm, // $$.*$$
-    run: (_, content) => katex.renderToString(content),
-});
+const DIST_DIR = 'katex/dist';
+
+module.exports = (_, utils) => {
+    const dist = path.join(utils.MODULES_DIR, DIST_DIR);
+    const resourceDir = path.join(__dirname, 'katex');
+    fs.removeSync(resourceDir);
+    fs.copySync(dist, resourceDir);
+
+    return {
+        phase: 'before',
+        resources: ['katex.min.css'],
+        resourcesLookup: 'katex',
+        pattern: /¨D¨D([\s\S]*?)¨D¨D/gm, // $$.*$$
+        run: (_, content) => katex.renderToString(content),
+    };
+};

@@ -1,14 +1,13 @@
+const fs = require('fs-extra');
 const path = require('path');
 
-module.exports = metadata => {
+module.exports = (metadata, utils) => {
     const css = `${metadata.theme || 'github'}.css`;
+    const file = path.join(utils.MODULES_DIR, `highlight.js/styles/${css}`);
+    fs.copySync(file, path.join(__dirname, css));
 
     return {
-        init(utils) {
-            const file = path.join(utils.MODULES_DIR, `highlight.js/styles/${css}`);
-            utils.copyFileSync(file, __dirname);
-        },
-        css,
+        resources: [css],
         external: require('showdown-highlight'),
     };
 };

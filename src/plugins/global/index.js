@@ -1,4 +1,4 @@
 module.exports = () => ({
     phase: 'resource',
-    css: 'global.css',
+    resources: ['global.css'],
 });

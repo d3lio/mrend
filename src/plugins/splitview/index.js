@@ -1,9 +1,8 @@
 module.exports = () => ({
-    css: 'splitview.css',
     phase: 'before',
+    resources: ['splitview.css'],
     pattern: /%%\n([\s\S]*?)\n%%\n([\s\S]*?)\n%%/gm,
-    run(_, lhs, rhs) {
-        return `
+    run: (_, lhs, rhs) => `
 <div class="split-view">
 <div class="lhs">
 ${lhs}
@@ -11,6 +10,5 @@ ${lhs}
 <div class="rhs">
 ${rhs}
 </div>
-</div>`;
-    },
+</div>`,
 });

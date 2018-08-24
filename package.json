@@ -12,6 +12,7 @@
     "build": "node src"
   },
   "dependencies": {
+    "fs-extra": "^7.0.0",
     "katex": "^0.10.0-beta",
     "showdown": "^1.8.6",
     "showdown-highlight": "^2.1.0"
