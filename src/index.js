@@ -6,7 +6,7 @@ const showdown = require('showdown');
 
 const p = path.join.bind(path);
 
-const input = process.argv[2];
+const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
 if (!input) {
     console.error('Input file not specified.');
     return;
@@ -26,8 +26,8 @@ const metadata = (function parseMetadata() {
 
 slides = slides.slice(1);
 
-const title = metadata.title || 'Untitled presentation';
-const outputDir = metadata.outputDir || 'untitled';
+const title = metadata.title || 'Untitled';
+const outputDir = metadata.outputDir || 'output';
 const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
@@ -55,7 +55,7 @@ fs.mkdirSync(BUNDLE_RESOURCES_DIR, 0o755);
 const styleSheets = [];
 const javaScripts = [];
 const otherResources = [];
-const extendPlugins =[];
+const extendPlugins = [];
 
 const pluginCollisions = new Set();
 
@@ -208,4 +208,4 @@ for (let resource of styleSheets.concat(javaScripts, otherResources)) {
     }
 }
 
-console.log('presentation: ', outputHtml);
+console.log('presentation:', outputHtml);

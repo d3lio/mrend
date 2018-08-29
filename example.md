@@ -12,6 +12,7 @@ outputDir: output
 ---
 
 # Introduction
+
 ### Basics
 
 This is how to implement the following formulae in Rust
@@ -36,7 +37,7 @@ fn main() {
 
 # Slide 2
 
-`single code`
+### Errors and warnings
 
 ```rust
 # // norun
@@ -59,6 +60,8 @@ let b: String = a;
 ---
 
 # Slide 3
+
+### Animations
 
 * item 1
 --
@@ -91,7 +94,7 @@ struct A {
 
 ---
 
-# Test slide
+# Rust error slide
 
 ```rust
 # // norun
@@ -108,15 +111,22 @@ fn main() {
 
 ---
 
-# A
+# Tables
 
-%%
-# Pros
-* 1
-* 2
-* 3
-%%
-# Cons
-* 1
-* 2
-%%
+### Markdown table centered
+
+| Header1 | Header2  |
+|:-------:|:--------:|
+|   u8    |   char   |
+|   u32   | unsigned |
+
+### HTML table
+
+<table>
+    <thead>
+        <tr><th>Header1</th><th>Header2</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td>2</td></tr>
+    </tbody>
+</table>

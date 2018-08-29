@@ -12,3 +12,19 @@ slide {
 img {
     width: 100%;
 }
+
+table {
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    overflow: hidden;
+}
+
+th {
+    border: 1px solid #333333;
+    background: #dddddd;
+}
+
+td {
+    border: 1px solid #333333;
+    background: #f8f8f8;
+}

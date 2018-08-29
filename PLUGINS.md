@@ -26,11 +26,11 @@ Here is an example of such a file:
 module.exports = () => ({
     phase: 'before',
     pattern: /hello/gm,
-    run: () => 'world',
+    run: () => 'hi',
 });
 ```
 
-The above plugin would replace any occurances of `hello` with `world` in the presentation markdown.
+The above plugin would replace any occurances of `hello` with `hi` in the presentation markdown.
 
 There are two types of plugins - native showdown plugins and mrend plugins.
 For now we're just going to look at the mrend plugins.
@@ -45,12 +45,14 @@ for example you want to have some frontend scripts and do nothing else in the pl
 will be perfect for that since it will register the frontend scripts and pass to the next plugin.
 
 The `extend` phase extends slides directly. You can add whole slides as markdown in this phase.
+The slides array is passed to the `run` function as first argument and the function is expected to
+return an array containing all the slides.
 Example usage would be to add wrapping slides like a speaker introduction or a Q&A slide.
 
 The `before` phase is a replace phase that runs before html generation. It translates to
 showdown's `lang` phase. It requires that `pattern` regex and `run` function are given.
 They work like `String.prototype.replace`. The pattern regex matches agains the markdown slides and
-when a match is found the run function is executed with the whole match as a first argument and
+when a match is found the `run` function is executed with the whole match as a first argument and
 each capture groups is given in order as the next arguments. You need to return a string that is
 the replacement for the match.
 
@@ -136,8 +138,8 @@ module.exports = (metadata, utils) => {
 
 `showdownjs` provides a plugin system of its own which the `mrend` plugins utilize. You can use the
 existing showdown plugin ecosystem by creating an external mrend plugin. Note that this is the
-only plugin that doesn't have a an mrend phase. Its execution order is determined by whether
-it's a `land` or an `output` plugin and it's position in the `plugin.json` file.
+only plugin type that doesn't have an mrend phase. Its execution order is determined by whether
+it's a `lang` or an `output` plugin and it's position in the `plugin.json` file.
 
 ```js
 module.exports = () => ({
