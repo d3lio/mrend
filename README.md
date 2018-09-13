@@ -68,7 +68,7 @@ To see the whole set of properties go to [example.md](example.md)
 Of course this wouldn't be a presentation generator if it couldn't create slides.
 To do so mrend uses `---` as a slide separator. For example
 
-```md
+```
 # Slide 1
 
 content
@@ -102,7 +102,7 @@ When changing slides instead of going to the next whole slide you will render th
 Sometimes you might need to compare two things or maybe create a pros and cons columns.
 This can be achived using the split view syntax.
 
-```md
+```
 # Review slide
 
 %%
@@ -133,14 +133,9 @@ syntax to remember which closely resembles Rust's doc tests.
 
 # Plugins
 
-Plugins reside in `src/backend/plugins`. The order in which they are executed is defined by
-`src/backend/plugins.json`.
+Refer to the plugins [draft documentation](PLUGINS.md).
 
-For now if you need to write plugins check out the preset ones in [src/backend/plugins](src/backend/plugins)
-or open an issue for help. You can also check out
-[showdownjs extensions](https://github.com/showdownjs/showdown/wiki/extensions)
-
-A plugins API documentation is on the way!
+You can also check out [showdownjs extensions](https://github.com/showdownjs/showdown/wiki/extensions)
 
 # TODO
 
