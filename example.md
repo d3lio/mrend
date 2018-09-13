@@ -1,6 +1,7 @@
 ---
 title: Presentation
 author: myself
+lang: en
 keywords: rust,fmi
 description: lecture about stuff
 slide-width: 50%
@@ -71,17 +72,18 @@ let b: String = a;
 --
 
 %%
-```cpp
-class A {
-  public:
-    int counter;
-}
-```
-%%
 ```rust
 # // ignore
 struct A {
     pub counter: i32;
+}
+```
+%%
+--
+```cpp
+class A {
+  public:
+    int counter;
 }
 ```
 %%
@@ -120,6 +122,11 @@ fn main() {
 |   u8    |   char   |
 |   u32   | unsigned |
 
+---
+
+# Advanced tables 1
+
+%%
 ### HTML table
 
 <table>
@@ -130,3 +137,92 @@ fn main() {
         <tr><td>1</td><td>2</td></tr>
     </tbody>
 </table>
+
+```html
+<table>
+    <thead>
+        <tr>
+            <th>Header1</th>
+            <th>Header2</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>2</td>
+        </tr>
+    </tbody>
+</table>
+```
+%%
+### Complex table syntax
+
+@@table
+h1 h2
+@
+c1 c2
+@@
+"h1": "Header1",
+"h2": "Header2",
+"c1": "1",
+"c2": "2"
+@@end
+
+```md
+@@table
+h1 h2
+@
+c1 c2
+@@
+"h1": "Header1",
+"h2": "Header2",
+"c1": "1",
+"c2": "2"
+@@end-np
+```
+%%
+
+---
+
+# Advanced tables 2
+
+### First
+
+@@table
+header1 header1 header2
+@
+content1 content1 content2
+content1 content1 content3
+@@
+"header1": {
+    "text": "...",
+    "style": "color: red"
+},
+"header2": "...",
+"content1": "...",
+"content2": "...",
+"content3": "..."
+@@end
+
+### Second
+
+@@table
+header header header
+@
+content1 content1 content2
+content5 content9 content4
+content5 content6 content6
+@@
+@@end
+
+### Third
+
+@@table
+header1 header2 header2
+@
+content1 content1 content1
+content3 content9 content2
+content4 content1 content1
+@@
+"content1": "..."
+@@end

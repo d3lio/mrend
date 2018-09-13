@@ -9,7 +9,7 @@ const p = path.join.bind(path);
 const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
 if (!input) {
     console.error('Input file not specified.');
-    return;
+    process.exit(1);
 }
 
 console.log('markdown:', input);
@@ -28,6 +28,7 @@ slides = slides.slice(1);
 
 const title = metadata.title || 'Untitled';
 const outputDir = metadata.outputDir || 'output';
+const lang = metadata.lang || 'en';
 const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
@@ -165,7 +166,7 @@ const scripts = javaScripts.reduce((acc, script) => {
 
 const template = `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
     <title>${title}</title>
     <meta charset="UTF-8">

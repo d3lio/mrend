@@ -6,9 +6,10 @@
     "wrapping-pages",
 
     "splitview",
+    "advanced-tables",
     "rustc",
-    "highlight",
     "katex",
 
+    "highlight",
     "codeblock"
 ]

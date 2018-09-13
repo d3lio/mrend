@@ -19,12 +19,15 @@ table {
     overflow: hidden;
 }
 
-th {
+th, td {
+    padding: 0.5rem 1rem;
     border: 1px solid #333333;
+}
+
+th {
     background: #dddddd;
 }
 
 td {
-    border: 1px solid #333333;
     background: #f8f8f8;
 }
