@@ -44,9 +44,9 @@ function parseGridSegment(segment, settings, element) {
                 JSON.stringify(segment, null, 4));
 
             const text = typeof settings[name] === 'string'
-                ? settings[name] || ''
-                : (settings[name] || {}).text || '';
-            const style = typeof settings[name] === 'string' ? '' : `style="${(settings[name] || {}).style}"`;
+                ? settings[name] || name
+                : (settings[name] || {}).text || name;
+            const style = typeof settings[name] === 'string' ? '' : `style="${(settings[name] || {}).style || ''}"`;
             const rowspan = k - i > 1 ? `rowspan="${k - i}"` : '';
             const colspan = l - j > 1 ? `colspan="${l - j}"` : '';
             row.push(`<${element} ${colspan} ${rowspan} ${style}>${text}</${element}>`);

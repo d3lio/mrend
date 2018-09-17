@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 
+const timer = process.hrtime();
+
 const fs = require('fs-extra');
 const path = require('path');
 const showdown = require('showdown');
 
 const p = path.join.bind(path);
 
-const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
-if (!input) {
+if (!process.argv[2]) {
     console.error('Input file not specified.');
     process.exit(1);
 }
+const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
 
 console.log('markdown:', input);
 
@@ -210,3 +212,8 @@ for (let resource of styleSheets.concat(javaScripts, otherResources)) {
 }
 
 console.log('presentation:', outputHtml);
+
+const diff = process.hrtime(timer);
+const sec = (diff[0] * 1e9 + diff[1]) / 1e9;
+
+console.log(`done in: ${sec} seconds`);

@@ -8,7 +8,7 @@ slide-width: 50%
 font-size: 20px
 font-family: Arial, Helvetica, sans-serif
 # code blocks color theme
-theme: github
+code-theme: github
 outputDir: output
 ---
 

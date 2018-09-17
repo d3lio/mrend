@@ -36,7 +36,7 @@ div.code-block div.code-container code {
 
 div.code-block div.rustc-container {
     /* scale the font with the container so we don't get scrollers */
-    font-size: 0.95vw;
+    /* font-size: 0.95vw; */
     border-top: 1px solid #DDD;
 }
 div.code-block div.rustc-container rustc {
