@@ -9,18 +9,24 @@ const NORUN_PATTERN = /^\/\/ *norun/m;
 const ERROR_PATTERN = '\n\nerror: aborting due to previous error';
 
 module.exports = (metadata, utils) => {
+    const codeToResult = new Map();
+
     const nightlyTc = metadata['rustc-nightly-tc'];
     const config = {
         typeCheckCmd: `rustup run ${nightlyTc || 'nightly'} rustc`,
         runCmd: 'rustc',
-        tempMainPath: 'rust-typecheck',
+        tempMainPath: 'rust',
     };
 
     let tempFileNo = 0;
 
     const codeCheckDir = path.join(utils.BUNDLE_DIR, config.tempMainPath);
+    const srcDir = path.join(utils.BUNDLE_DIR, config.tempMainPath, 'src');
+    const logDir = path.join(utils.BUNDLE_DIR, config.tempMainPath, 'logs');
     fs.removeSync(codeCheckDir);
     fs.mkdirSync(codeCheckDir, 0o755);
+    fs.mkdirSync(srcDir, 0o755);
+    fs.mkdirSync(logDir, 0o755);
 
     function typeCheck(file) {
         try {
@@ -53,21 +59,38 @@ module.exports = (metadata, utils) => {
                 return template1;
             }
 
-            const fileName = path.join(codeCheckDir, `main_${tempFileNo}.rs`);
-            tempFileNo++;
-            fs.writeFileSync(fileName, main);
+            let result;
 
-            const result = (NORUN_PATTERN.test(main)
-                ? typeCheck(fileName)
-                : run(fileName)
-            ).toString().trim();
+            if (codeToResult.has(main)) {
+                result = fs.readFileSync(codeToResult.get(main), 'UTF-8');
+            } else {
+                const fileName = path.join(srcDir, `main_${tempFileNo}.rs`);
+                fs.writeFileSync(fileName, main);
+
+                result = (NORUN_PATTERN.test(main)
+                    ? typeCheck(fileName)
+                    : run(fileName)
+                ).toString().trim();
+
+                const resultFile = path.join(logDir, `result_${tempFileNo}.log`);
+                fs.writeFileSync(resultFile, result);
+                codeToResult.set(main, resultFile);
+                tempFileNo++;
+            }
 
             if (!result) {
                 return template1;
             }
 
             const tmiBegin = result.indexOf(ERROR_PATTERN);
-            const output = tmiBegin === -1 ? result : result.slice(0, tmiBegin);
+            let output = tmiBegin === -1 ? result : result.slice(0, tmiBegin);
+            output = output
+                .split('\n')
+                .map(line => line.startsWith(' -->')
+                    ? ' --> ' + line.slice(line.lastIndexOf('/') + 1)
+                    : line)
+                .join('\n');
+
             const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
             return template1 + template2;
         },
