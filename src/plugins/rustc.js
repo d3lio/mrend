@@ -7,7 +7,7 @@ const SHOW_PATTERN = /^# .*$/gm;
 const MAIN_PATTERN = /^# /gm;
 const IGNORE_PATTERN = /^\/\/ *ignore/m;
 const NORUN_PATTERN = /^\/\/ *norun/m;
-const ERROR_PATTERN = /\n\n.*aborting due to previous error/m;
+const ERROR_PATTERN = /\n\n.*aborting due to/m;
 
 module.exports = (metadata, utils) => {
     const codeToResult = new Map();
@@ -17,6 +17,9 @@ module.exports = (metadata, utils) => {
         typeCheckCmd: `rustup run ${nightlyTc || 'nightly'} rustc`,
         runCmd: 'rustc',
         tempMainPath: 'rust',
+        processOpts: {
+            timeout: 5000,
+        },
     };
 
     let tempFileNo = 0;
@@ -31,7 +34,10 @@ module.exports = (metadata, utils) => {
 
     function typeCheck(file) {
         try {
-            return child_process.execSync(`${config.typeCheckCmd} ${file} --color=always -Zno-codegen 2>&1`);
+            return child_process.execSync(
+                `${config.typeCheckCmd} ${file} --color=always -Zno-codegen 2>&1`,
+                config.processOpts
+            );
         } catch (e) {
             return e.stdout;
         }
@@ -39,10 +45,18 @@ module.exports = (metadata, utils) => {
 
     function run(file) {
         try {
-            const result = child_process.execSync(`${config.runCmd} ${file} --color=always -o ${file}.exe 2>&1`);
+            // Compile the Rust source
+            const result = child_process.execSync(
+                `${config.runCmd} ${file} --color=always -o ${file}.exe 2>&1`,
+                config.processOpts
+            );
             if (result.length) return result;
 
-            return child_process.execFileSync(`${file}.exe`);
+            // Execute the compiled binary
+            return child_process.execSync(
+                `${file}.exe 2>&1`,
+                config.processOpts
+            );
         } catch (e) {
             return e.stdout;
         }
@@ -88,19 +102,7 @@ module.exports = (metadata, utils) => {
             const output = (function() {
                 const reResut = ERROR_PATTERN.exec(result);
                 const temp = reResut ? result.slice(0, reResut.index) : result;
-                return temp
-                    .split('\n')
-                    .map(line => {
-                        // Remove absolute file path and replace it with it's file name.
-                        if (line.includes('--&gt;')) {
-                            const left = line.slice(0, line.indexOf('>/') + 1);
-                            const right = line.slice(line.lastIndexOf('/') + 1);
-                            return left + right;
-                        } else {
-                            return line;
-                        }
-                    })
-                    .join('\n');
+                return temp.replace(codeCheckDir, '');
             }());
 
             const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
