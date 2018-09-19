@@ -1,12 +1,13 @@
 const fs = require('fs-extra');
 const path = require('path');
 const child_process = require('child_process');
+const ansi_up = new (require('ansi_up').default)();
 
 const SHOW_PATTERN = /^# .*$/gm;
 const MAIN_PATTERN = /^# /gm;
 const IGNORE_PATTERN = /^\/\/ *ignore/m;
 const NORUN_PATTERN = /^\/\/ *norun/m;
-const ERROR_PATTERN = '\n\nerror: aborting due to previous error';
+const ERROR_PATTERN = /\n\n.*aborting due to previous error/m;
 
 module.exports = (metadata, utils) => {
     const codeToResult = new Map();
@@ -30,7 +31,7 @@ module.exports = (metadata, utils) => {
 
     function typeCheck(file) {
         try {
-            return child_process.execSync(`${config.typeCheckCmd} ${file} -Zno-codegen 2>&1`);
+            return child_process.execSync(`${config.typeCheckCmd} ${file} --color=always -Zno-codegen 2>&1`);
         } catch (e) {
             return e.stdout;
         }
@@ -38,7 +39,7 @@ module.exports = (metadata, utils) => {
 
     function run(file) {
         try {
-            const result = child_process.execSync(`${config.runCmd} ${file} -o ${file}.exe 2>&1`);
+            const result = child_process.execSync(`${config.runCmd} ${file} --color=always -o ${file}.exe 2>&1`);
             if (result.length) return result;
 
             return child_process.execFileSync(`${file}.exe`);
@@ -70,7 +71,9 @@ module.exports = (metadata, utils) => {
                 result = (NORUN_PATTERN.test(main)
                     ? typeCheck(fileName)
                     : run(fileName)
-                ).toString().trim();
+                );
+                result = result.toString().trim();
+                result = ansi_up.ansi_to_html(result);
 
                 const resultFile = path.join(logDir, `result_${tempFileNo}.log`);
                 fs.writeFileSync(resultFile, result);
@@ -82,14 +85,23 @@ module.exports = (metadata, utils) => {
                 return template1;
             }
 
-            const tmiBegin = result.indexOf(ERROR_PATTERN);
-            let output = tmiBegin === -1 ? result : result.slice(0, tmiBegin);
-            output = output
-                .split('\n')
-                .map(line => line.startsWith(' -->')
-                    ? ' --> ' + line.slice(line.lastIndexOf('/') + 1)
-                    : line)
-                .join('\n');
+            const output = (function() {
+                const reResut = ERROR_PATTERN.exec(result);
+                const temp = reResut ? result.slice(0, reResut.index) : result;
+                return temp
+                    .split('\n')
+                    .map(line => {
+                        // Remove absolute file path and replace it with it's file name.
+                        if (line.includes('--&gt;')) {
+                            const left = line.slice(0, line.indexOf('>/') + 1);
+                            const right = line.slice(line.lastIndexOf('/') + 1);
+                            return left + right;
+                        } else {
+                            return line;
+                        }
+                    })
+                    .join('\n');
+            }());
 
             const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
             return template1 + template2;
