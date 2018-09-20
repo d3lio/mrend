@@ -29,8 +29,8 @@ const metadata = (function parseMetadata() {
 slides = slides.slice(1);
 
 const title = metadata.title || 'Untitled';
-const outputDir = metadata.outputDir || 'output';
 const lang = metadata.lang || 'en';
+const outputDir = metadata['output-dir'] || 'output';
 const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
@@ -141,13 +141,24 @@ if (extendPlugins.length) {
 
 console.log('parsing slides');
 
-const html = (function parsingSlides() {
+let html = (function() {
     const converter = new showdown.Converter(Object.assign(require('./config.json'), {
         extensions: showdownPlugins,
     }));
     converter.setFlavor('github');
 
     return slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
+}());
+
+console.log('copying image resources');
+
+html = (function() {
+    const re = /<img (.*?)src[/s]*=[/s]*"(?!http)(.*?)"/mg;
+    return html.replace(re, (match, p1, p2) => {
+        const url = p(BUNDLE_RESOURCES, p2);
+        fs.copySync(p2, p(BUNDLE_RESOURCES_DIR, p2));
+        return `<img ${p1}src="${url}"`;
+    });
 }());
 
 console.log('generating output');

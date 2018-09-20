@@ -9,7 +9,7 @@ font-size: 20px
 font-family: Arial, Helvetica, sans-serif
 # code blocks color theme
 code-theme: github
-outputDir: output
+output-dir: output
 ---
 
 # Introduction
