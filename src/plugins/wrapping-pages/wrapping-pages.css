@@ -1,0 +1,4 @@
+slide:first-child, slide:last-child {
+    text-align: center;
+    margin-top: 100px;
+}
