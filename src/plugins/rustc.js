@@ -102,7 +102,7 @@ module.exports = (metadata, utils) => {
             const output = (function() {
                 const reResut = ERROR_PATTERN.exec(result);
                 const temp = reResut ? result.slice(0, reResut.index) : result;
-                return temp.replace(codeCheckDir, '');
+                return temp.replace(new RegExp(codeCheckDir, 'g'), '');
             }());
 
             const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
