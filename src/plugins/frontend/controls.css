@@ -1,0 +1,37 @@
+nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1rem;
+    height: 2rem;
+    color: #333333;
+    background: #f1f1f1;
+    line-height: 2rem;
+    opacity: 0;
+
+    transition-property: opacity;
+    transition-duration: 0.5s;
+}
+
+nav:hover {
+    opacity: 1;
+}
+
+nav div {
+    display: flex;
+    width: 8rem;
+}
+
+nav div a {
+    padding-top: 7px;
+    width: 100%;
+    color: inherit;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1rem;
+    text-align: center;
+    text-decoration: none;
+}
+
+div.slide.active {
+    display: flex;
+}

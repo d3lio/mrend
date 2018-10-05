@@ -14,15 +14,25 @@ if (!process.argv[2]) {
 }
 const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
 
-console.log('markdown:', input);
+console.info('markdown:', input);
 
-let slides = fs.readFileSync(input, 'UTF8').split('---\n').slice(1);
+function createSlide(content, metadata) {
+    return {
+        content,
+        metadata: metadata ? new Map(metadata) : new Map(),
+    };
+}
 
-console.log('parsing metadata');
+let slides = fs.readFileSync(input, 'UTF8')
+    .split(/^\s*?---\s*?\n/gm)
+    .slice(1)
+    .map(content => createSlide(content));
+
+console.info('parsing metadata');
 
 const metadata = (function parseMetadata() {
     const metadataConverter = new showdown.Converter({ metadata: true });
-    metadataConverter.makeHtml(`---\n${slides[0]}\n---`);
+    metadataConverter.makeHtml(`---\n${slides[0].content}\n---`);
     return Object.freeze(metadataConverter.getMetadata());
 }());
 
@@ -35,7 +45,7 @@ const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';
 
-console.log('metadata:', JSON.stringify(metadata, null, 4));
+console.info('metadata:', JSON.stringify(metadata, null, 4));
 
 const MODULES_DIR = path.resolve(path.join(__dirname, '..', 'node_modules'));
 const BUNDLE_DIR = p(process.cwd(), outputDir);
@@ -49,7 +59,7 @@ const PHASE = {
     AFTER: 'after',
 };
 
-console.log('creating bundle directories');
+console.info('creating bundle directories');
 
 fs.removeSync(BUNDLE_DIR);
 fs.mkdirSync(BUNDLE_DIR, 0o755);
@@ -68,10 +78,16 @@ const showdownPlugins = require('./plugins.json').reduce((plugins, name) => {
     }
     pluginCollisions.add(name);
 
-    console.log('loading plugin:', name);
+    console.info('loading plugin:', name);
+
+    const utils = {
+        MODULES_DIR,
+        BUNDLE_DIR,
+        createSlide,
+    };
 
     const pluginPath = p(PLUGINS_DIR, name);
-    const plugin = require(pluginPath)(metadata, { MODULES_DIR, BUNDLE_DIR });
+    const plugin = require(pluginPath)(metadata, utils);
 
     if (plugin.resources) {
         for (let resource of plugin.resources) {
@@ -135,11 +151,11 @@ const showdownPlugins = require('./plugins.json').reduce((plugins, name) => {
 }, []);
 
 if (extendPlugins.length) {
-    console.log('extending slides');
+    console.info('extending slides');
     slides = extendPlugins.reduce((slides, plugin) => plugin.run(slides) || slides, slides);
 }
 
-console.log('parsing slides');
+console.info('parsing slides');
 
 let html = (function() {
     const converter = new showdown.Converter(Object.assign(require('./config.json'), {
@@ -147,10 +163,13 @@ let html = (function() {
     }));
     converter.setFlavor('github');
 
-    return slides.reduce((acc, md) => acc + `<slide>\n${converter.makeHtml(md)}\n</slide>`, '');
+    return slides.reduce((acc, slide) => {
+        const subslide = slide.metadata.get('subslide') ? ' subslide': '';
+        return acc + `<div class="slide${subslide}">\n${converter.makeHtml(slide.content)}\n</div>`;
+    }, '');
 }());
 
-console.log('copying image resources');
+console.info('copying image resources');
 
 html = (function() {
     const re = /<img (.*?)src[/s]*=[/s]*"(?!http)(.*?)"/mg;
@@ -161,7 +180,7 @@ html = (function() {
     });
 }());
 
-console.log('generating output');
+console.info('generating output');
 
 const htmlMetaKeys = new Set(['author', 'keywords', 'description']);
 const htmlMeta = Object.entries(metadata).reduce((acc, [key, val]) => htmlMetaKeys.has(key)
@@ -190,19 +209,21 @@ const template = `
             font-size: ${fontSize};
             font-family: ${fontFamily};
         }
-        slide {
+        div.slide {
             width: ${slideWidth};
         }
     </style>
     ${scripts}
 </head>
 <body>
-${html}
+    <main>
+        ${html}
+    </main>
 </body>
 </html>
 `;
 
-console.log('populating bundle');
+console.info('populating bundle');
 
 const outputHtml = p(BUNDLE_DIR, 'index.html');
 
@@ -222,9 +243,9 @@ for (let resource of styleSheets.concat(javaScripts, otherResources)) {
     }
 }
 
-console.log('presentation:', outputHtml);
+console.info('presentation:', outputHtml);
 
 const diff = process.hrtime(timer);
 const sec = (diff[0] * 1e9 + diff[1]) / 1e9;
 
-console.log(`done in: ${sec} seconds`);
+console.info(`done in: ${sec} seconds`);

@@ -1,15 +1,19 @@
-const SUBSLIDE_PATTER = /^--\n/gm;
+const SUBSLIDE_PATTER = /^\s*?--\s*?\n/gm;
 
-module.exports = () => ({
+module.exports = (_, utils) => ({
     phase: 'extend',
     run(slides) {
         return slides.reduce((acc, slide) => {
-            const subslides = slide.split(SUBSLIDE_PATTER);
-            const slides = subslides.reduce((acc, subslide, i) => {
-                acc.push(acc[i] + subslide);
+            const subslides = slide.content.split(SUBSLIDE_PATTER);
+            const initial = subslides.length
+                ? [utils.createSlide(subslides[0], slide.metadata)]
+                : [utils.createSlide('')];
+            const slides = subslides.slice(1).reduce((acc, subslide, i) => {
+                const meta = new Map(slide.metadata);
+                meta.set('subslide', true);
+                acc.push(utils.createSlide(acc[i].content + subslide, meta));
                 return acc;
-            }, ['']);
-            slides.shift();
+            }, initial);
             acc.push(...slides);
             return acc;
         }, []);

@@ -1,4 +1,4 @@
-module.exports = metadata => {
+module.exports = (metadata, utils) => {
     const LOCALES = require('./locales.json');
     const qnaLocalizedDefault = (LOCALES[metadata.lang] || {}).qna;
 
@@ -10,8 +10,8 @@ module.exports = metadata => {
         phase: 'extend',
         resources: ['wrapping-pages.css'],
         run(slides) {
-            slides.unshift(`# ${metadata.title}${desc}${date}`);
-            slides.push(`# ${qna}`);
+            slides.unshift(utils.createSlide(`# ${metadata.title}${desc}${date}`));
+            slides.push(utils.createSlide(`# ${qna}`));
             return slides;
         },
     };

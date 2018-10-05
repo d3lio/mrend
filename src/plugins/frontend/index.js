@@ -1,4 +1,4 @@
 module.exports = () => ({
     phase: 'resource',
-    resources: ['controls.js'],
+    resources: ['controls.js', 'controls.css'],
 });
