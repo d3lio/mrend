@@ -64,6 +64,7 @@ console.info('creating bundle directories');
 fs.removeSync(BUNDLE_DIR);
 fs.mkdirSync(BUNDLE_DIR, 0o755);
 fs.mkdirSync(BUNDLE_RESOURCES_DIR, 0o755);
+fs.writeFileSync(p(BUNDLE_DIR, '.gitignore'), '*');
 
 const styleSheets = [];
 const javaScripts = [];
