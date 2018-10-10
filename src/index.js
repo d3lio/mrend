@@ -5,14 +5,43 @@ const timer = process.hrtime();
 const fs = require('fs-extra');
 const path = require('path');
 const showdown = require('showdown');
+const commandLineArgs = require('command-line-args');
+const commandLineUsage = require('command-line-usage');
 
-const p = path.join.bind(path);
+class FileDetails {
+    constructor(filename) {
+        this.filename = filename + (path.extname(filename) ? '' : '.md');
+        this.exists = fs.existsSync(this.filename);
+    }
+}
 
-if (!process.argv[2]) {
+const optionsDefinitions = [
+    { name: 'help', alias: 'h', type: Boolean },
+    { name: 'input', alias: 'i', type: filename => new FileDetails(filename), defaultOption: true },
+    { name: 'output', alias: 'o', type: String, defaultValue: 'output' },
+];
+
+const options = commandLineArgs(optionsDefinitions);
+
+if (options.help) {
+    const sections = require('./usage.json');
+    const usage = commandLineUsage(sections);
+    console.info(usage);
+    process.exit(0);
+}
+
+if (!options.input.filename) {
     console.error('Input file not specified.');
     process.exit(1);
 }
-const input = process.argv[2] + (path.extname(process.argv[2]) ? '' : '.md');
+if (!options.input.exists) {
+    console.error('Input file does not exist.');
+    process.exit(1);
+}
+
+const p = path.join.bind(path);
+
+const input = options.input.filename;
 
 console.info('markdown:', input);
 
@@ -40,7 +69,7 @@ slides = slides.slice(1);
 
 const title = metadata.title || 'Untitled';
 const lang = metadata.lang || 'en';
-const outputDir = metadata['output-dir'] || 'output';
+const outputDir = options.output;
 const slideWidth = metadata['slide-width'] || '50%';
 const fontSize = metadata['font-size'] || '28px';
 const fontFamily = metadata['font-family'] || 'Arial, Helvetica, sans-serif';

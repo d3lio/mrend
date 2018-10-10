@@ -1,0 +1,33 @@
+[
+    {
+        "header": "mrend",
+        "content": "Markdown presentation generator."
+    },
+    {
+        "header": "Options",
+        "optionList": [
+            {
+                "name": "help",
+                "alias": "h",
+                "description": "Print this usage guide."
+            },
+            {
+                "name": "input",
+                "alias": "i",
+                "defaultOption": true,
+                "typeLabel": "{underline file}",
+                "description": "The markdown file to process. File extension can be ommitted."
+            },
+            {
+                "name": "output",
+                "alias": "o",
+                "typeLabel": "{underline directory}",
+                "description": "The relative bundle output directory. Will be created if it doesn't exist. [default: \"output\"]"
+            }
+        ]
+    },
+    {
+        "header": "Examples",
+        "content": "mrend --input example.md --output output\nmrend -i example.md -o output\nmrend example"
+    }
+]
