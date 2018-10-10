@@ -23,6 +23,11 @@
                 "alias": "o",
                 "typeLabel": "{underline directory}",
                 "description": "The relative bundle output directory. Will be created if it doesn't exist. [default: \"output\"]"
+            },
+            {
+                "name": "watch",
+                "alias": "w",
+                "description": "When set it watches for changes in the input file and rebuilds the presentation."
             }
         ]
     },
