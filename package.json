@@ -16,8 +16,9 @@
     "command-line-args": "^5.0.2",
     "command-line-usage": "^5.0.5",
     "fs-extra": "^7.0.0",
+    "highlight.js": "^9.13.1",
+    "js-sha1": "^0.6.0",
     "katex": "^0.10.0-beta",
-    "showdown": "^1.8.6",
-    "showdown-highlight": "^2.1.0"
+    "showdown": "^1.8.6"
   }
 }

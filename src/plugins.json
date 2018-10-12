@@ -1,15 +1,33 @@
-[
-    "global",
-    "frontend",
+{
+    "resource": [
+        "codeblock",
+        "frontend",
+        "global",
+        "highlight",
+        "katex",
+        "splitview",
+        "wrapping-pages"
+    ],
 
-    "subslides",
-    "wrapping-pages",
+    "extend": [
+        "rustc",
+        "subslides",
+        "wrapping-pages"
+    ],
 
-    "splitview",
-    "advanced-tables",
-    "rustc",
-    "katex",
+    "before": [
+        "splitview",
+        "advanced-tables",
+        "katex"
+    ],
 
-    "highlight",
-    "codeblock"
-]
+    "after": [
+        "rustc",
+        "highlight",
+        "codeblock"
+    ],
+
+    "cleanup": [
+        "rustc"
+    ]
+}

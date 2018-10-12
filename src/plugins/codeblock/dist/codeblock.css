@@ -39,7 +39,7 @@ div.code-block div.rustc-container {
     /* font-size: 0.95vw; */
     border-top: 1px solid #DDD;
 }
-div.code-block div.rustc-container rustc {
+div.code-block div.rustc-container div.rustc {
     box-sizing: border-box;
     height: 100%;
     padding: 1em;

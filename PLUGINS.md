@@ -12,10 +12,38 @@ The behaviour of registering is just like any other node module - they use their
 name while having an `index.js` inside or directly the name of the file if they don't need to have
 a folder. Generally you'd want to have a folder to hold your resource like css, fonts, js, etc.
 
+# Phases
+
+Plugins have four phases: `external`, `resource`, `extend`, `before`, `after` and `cleanup`.
+Each plugin can be registered for multiple phases but only once per phase.
+
+The `external` phase registers an external showdown plugin.
+Read the external plugins section for more information.
+
+The `resource` phase does nothing other that registering resources. Any plugin can do that but
+for example you want to have some frontend scripts and do nothing else in the plugin. This phase
+will be perfect for that since it will register the frontend scripts and pass to the next plugin.
+
+The `extend` phase extends slides directly. You can add whole slides as markdown in this phase.
+The slides array is passed to the `extend` function as first argument and the function is expected
+to return an array containing all the slides.
+Example usage would be to add wrapping slides like a speaker introduction or a Q&A slide.
+
+The `before` phase is a replace phase that runs before html generation. It translates to
+showdown's `lang` phase. It requires that `pattern` regex and `replace` function are placed
+in an object and set as the `before` property.
+They work like `String.prototype.replace`. The pattern regex matches against the markdown slides and
+when a match is found the `replace` function is executed with the whole match as a first argument
+and each capture groups is given in order as the next arguments. You need to return a string that is
+the replacement for the match.
+
+The `after` phase is similar to `before` but instead of executing before html generation it executes
+after it. It works on the same principle and maps to showdown's `output` phase.
+
 # Writing a plugin
 
 After having created the plugin structure and registered it as described above you can proceed to
-wrigin the actual plugin. Then in your main file you need to provide `module.exports` with a
+writing the actual plugin. Then in your main file you need to provide `module.exports` with a
 function that returns the object representing your plugin.
 
 Here is an example of such a file:
@@ -30,7 +58,7 @@ module.exports = () => ({
 });
 ```
 
-The above plugin would replace any occurances of `hello` with `hi` in the presentation markdown.
+The above plugin would replace any occurrences of `hello` with `hi` in the presentation markdown.
 
 There are two types of plugins - native showdown plugins and mrend plugins.
 For now we're just going to look at the mrend plugins.
@@ -82,7 +110,7 @@ module.exports = () => ({
 
 Everything else around linking css or js would be handled by the core functionality.
 
-You can also provide a lookup directory. This is useful if you want to organise your plugin.
+You can also provide a lookup directory. This is useful if you want to organize your plugin.
 
 ```
 my-plugin/
@@ -104,7 +132,7 @@ module.exports = () => ({
 Some plugins might want to have some king of configuration provided by the presentation header.
 That configuration is passed as the first argument of of the function you export and is called
 metadata. You should scope your metadata parameters with your plugin name as a prefix.
-Lets say your plugin is called `awesomeblock`. Then you should exepect the metadata to hold
+Lets say your plugin is called `awesomeblock`. Then you should expect the metadata to hold
 parameters prefixed with `awesomeblock-`.
 
 ```js
@@ -149,7 +177,7 @@ module.exports = () => ({
 ```
 
 To make that work you need to also copy the resources from `node_modules` and register them.
-For your convinience this is already done in the `highlight` plugin that comes with the tool.
+For your convenience this is already done in the `highlight` plugin that comes with the tool.
 
 # Support
 

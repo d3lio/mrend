@@ -58,23 +58,23 @@ function parseGridSegment(segment, settings, element) {
 }
 
 module.exports = () => ({
-    phase: 'before',
-    pattern: /@@table\s*([\s\S]*?)\s*@@\s*([\s\S]*?)@@end(-np)?/gm,
-    run(match, layout, style, noParse) {
-        if (noParse) {
-            return match.slice(0, -3);
-        }
+    before: {
+        pattern: /@@table\s*([\s\S]*?)\s*@@\s*([\s\S]*?)@@end(-np)?/gm,
+        replace(match, layout, style, noParse) {
+            if (noParse) {
+                return match.slice(0, -3);
+            }
 
-        let settings;
-        try {
-            settings = JSON.parse(`{${style}}`);
-        } catch (e) {
-            throw new Error(`Invalid table json: \n{\n${style.trim()}\n}`);
-        }
-        const [head, body] = parseLayout(layout);
-        const h = parseGridSegment(head, settings, 'th');
-        const b = parseGridSegment(body, settings, 'td');
-        return `
+            let settings;
+            try {
+                settings = JSON.parse(`{${style}}`);
+            } catch (e) {
+                throw new Error(`Invalid table json: \n{\n${style.trim()}\n}`);
+            }
+            const [head, body] = parseLayout(layout);
+            const h = parseGridSegment(head, settings, 'th');
+            const b = parseGridSegment(body, settings, 'td');
+            return `
 <table>
     <thead>
         ${h}
@@ -83,5 +83,6 @@ module.exports = () => ({
         ${b}
     </tbody>
 </table>`;
+        },
     },
 });

@@ -49,7 +49,7 @@ Every `mrend` presentation has a metadata header that looks like this
 ```
 ---
 title: My Presentation
-outputDir: output
+author: John Doe
 ---
 ```
 
@@ -57,11 +57,11 @@ You can configure your presentation without having to pass any special arguments
 Each presentation has its own such properties and you won't have to remember to pass them
 every time you need to rebuild the presentation.
 
-The above example declares two properties - the `title` and the `outputDir`. The former is your
-presentation's title. The latter is the folder in which `mrend` will generate the presentation.
-It is relative to you current working directory.
+The above example declares two properties - the `title` and the `author`. The former is your
+presentation's title. The latter is the name of the author which `mrend` will put in the
+introduction slide.
 
-To see the whole set of properties go to [example.md](example.md)
+To see an extended set of properties go to [example.md](example.md)
 
 ### Slides
 
@@ -139,5 +139,7 @@ You can also check out [showdownjs extensions](https://github.com/showdownjs/sho
 
 # TODO
 
+* Code block copy button
 * Code block spot light and animations
 * Split view animations
+* Speaker notes

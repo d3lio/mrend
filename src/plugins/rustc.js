@@ -1,43 +1,68 @@
-const fs = require('fs-extra');
-const path = require('path');
 const child_process = require('child_process');
+const sha1 = require('js-sha1');
 const ansi_up = new (require('ansi_up').default)();
 
 fixWindowsANSIColors(ansi_up);
 
-const SHOW_PATTERN = /^# .*$/gm;
-const MAIN_PATTERN = /^# /gm;
+const CODE_BLOCK_PATTERN = /```rust([\s\S]*?)```/gm;
+const NO_SHOW_PATTERN = /^# .*$/gm;
+const HIDDEN_PATTERN = /^#\s*/gm;
 const IGNORE_PATTERN = /^\/\/ *ignore/m;
 const NORUN_PATTERN = /^\/\/ *norun/m;
 const ERROR_PATTERN = /\n\n.*aborting due to/m;
 
-module.exports = (metadata, utils) => {
-    const codeToResult = new Map();
+const CACHE_FILE_NAME = 'cache.json';
 
-    const nightlyTc = metadata['rustc-nightly-tc'];
+function serialize(map) {
+    const obj = {};
+    map.forEach((v, k) => {
+        obj[k] = v.file;
+    });
+    return JSON.stringify(obj, null, 4);
+}
+
+function deserialize(obj, dir) {
+    const map = new Map();
+    for (let key in obj) {
+        const result = dir.readFileSync(obj[key]);
+        map.set(key, {
+            file: obj[key],
+            result,
+        });
+    }
+    return map;
+}
+
+module.exports = (metadata, utils) => {
+    const srcDir = utils.bundle.resources.mkdirSync('src');
+    const logDir = utils.bundle.cache.mkCacheDirSync('logs');
+
+    const codeToResult = utils.bundle.cache.existsSync(CACHE_FILE_NAME)
+        ? deserialize(utils.bundle.cache.readJsonSync(CACHE_FILE_NAME), logDir)
+        : new Map();
+
+    const warnings = metadata['rustc-allows'] || [
+        'unused_variables',
+        'unused_assignments',
+        'unused_mut',
+        'unused_attributes',
+        'dead_code',
+    ];
+
+    const nightlyTc = metadata['rustc-nightly-tc'] || 'nightly';
     const config = {
-        typeCheckCmd: `rustup run ${nightlyTc || 'nightly'} rustc`,
+        typeCheckCmd: `rustup run ${nightlyTc} rustc`,
         runCmd: 'rustc',
-        tempMainPath: 'rust',
+        commonArgs: `--color=always -A ${warnings.join(' -A ')}`,
         processOpts: {
             timeout: 5000,
         },
     };
 
-    let tempFileNo = 0;
-
-    const codeCheckDir = path.join(utils.BUNDLE_DIR, config.tempMainPath);
-    const srcDir = path.join(utils.BUNDLE_DIR, config.tempMainPath, 'src');
-    const logDir = path.join(utils.BUNDLE_DIR, config.tempMainPath, 'logs');
-    fs.removeSync(codeCheckDir);
-    fs.mkdirSync(codeCheckDir, 0o755);
-    fs.mkdirSync(srcDir, 0o755);
-    fs.mkdirSync(logDir, 0o755);
-
     function typeCheck(file) {
         try {
             return child_process.execSync(
-                `${config.typeCheckCmd} ${file} --color=always -Zno-codegen 2>&1`,
+                `${config.typeCheckCmd} ${file} ${config.commonArgs} -Zno-codegen 2>&1`,
                 config.processOpts
             );
         } catch (e) {
@@ -49,7 +74,7 @@ module.exports = (metadata, utils) => {
         try {
             // Compile the Rust source
             const result = child_process.execSync(
-                `${config.runCmd} ${file} --color=always -o ${file}.exe 2>&1`,
+                `${config.runCmd} ${file} ${config.commonArgs} -o ${file}.exe 2>&1`,
                 config.processOpts
             );
             if (result.length) return result;
@@ -64,53 +89,70 @@ module.exports = (metadata, utils) => {
         }
     }
 
-    return {
-        phase: 'before',
-        pattern: /```rust([\s\S]*?)```/gm,
-        run(_, code) {
-            const show = code.replace(SHOW_PATTERN, '').trim();
-            const main = code.replace(MAIN_PATTERN, '').replace(/\\`\\`\\`/gm, '```').trim();
+    function compile(code) {
+        const show = code.replace(NO_SHOW_PATTERN, '').trim();
+        const main = code.replace(HIDDEN_PATTERN, '').replace(/\\`\\`\\`/gm, '```').trim();
+        const sha = sha1(main);
 
-            const template1 = `\`\`\`rust\n${show}\n\`\`\``;
-            if (IGNORE_PATTERN.test(main)) {
-                return template1;
-            }
+        const template = `\`\`\`rust\n${show}\n\`\`\``;
+        if (IGNORE_PATTERN.test(main)) {
+            return template;
+        }
 
-            let result;
+        let result;
 
-            if (codeToResult.has(main)) {
-                result = fs.readFileSync(codeToResult.get(main), 'UTF-8');
-            } else {
-                const fileName = path.join(srcDir, `main_${tempFileNo}.rs`);
-                fs.writeFileSync(fileName, main);
+        if (codeToResult.has(sha)) {
+            result = codeToResult.get(sha).result.toString();
+        } else {
+            const fileName = srcDir.writeFileSync(`main_${sha}.rs`, main);
 
-                result = (NORUN_PATTERN.test(main)
-                    ? typeCheck(fileName)
-                    : run(fileName)
-                );
-                result = result.toString().trim();
-                result = ansi_up.ansi_to_html(result);
-
-                const resultFile = path.join(logDir, `result_${tempFileNo}.log`);
-                fs.writeFileSync(resultFile, result);
-                codeToResult.set(main, resultFile);
-                tempFileNo++;
-            }
-
-            if (!result) {
-                return template1;
-            }
-
-            const output = (function() {
+            result = (NORUN_PATTERN.test(main)
+                ? typeCheck(fileName)
+                : run(fileName)
+            );
+            result = result.toString().trim();
+            result = ansi_up.ansi_to_html(result);
+            result = (function() {
                 const reResut = ERROR_PATTERN.exec(result);
                 const temp = reResut ? result.slice(0, reResut.index) : result;
                 // Escape Windows paths.
-                const escaped = codeCheckDir.replace(/\\/g, '\\\\');
+                const escaped = srcDir.name.replace(/\\/g, '\\\\');
                 return temp.replace(new RegExp(escaped, 'g'), '');
             }());
 
-            const template2 = `<pre><rustc class="hljs">${output}</rustc></pre>`;
-            return template1 + template2;
+            const resFile = `result_${sha}.log`;
+            logDir.writeFileSync(resFile, result);
+            codeToResult.set(sha, {
+                file: resFile,
+                result,
+            });
+        }
+
+        if (!result) {
+            return template;
+        }
+
+        return template + `<pre>rustc-cache(${sha})</pre>`;
+    }
+
+    return {
+        extend(slides) {
+            slides.forEach(slide => {
+                slide.content = slide.content.replace(CODE_BLOCK_PATTERN, (_, code) => {
+                    return compile(code);
+                });
+            });
+            utils.bundle.cache.writeFileSync(CACHE_FILE_NAME, serialize(codeToResult));
+            return slides;
+        },
+        after: {
+            pattern: /rustc-cache\((.*?)\)/gm,
+            replace(_, sha) {
+                return `<div class="rustc hljs">${codeToResult.get(sha).result}</div>`;
+            },
+        },
+        cleanup() {
+            srcDir.removeSync();
         },
     };
 };
@@ -120,33 +162,35 @@ module.exports = (metadata, utils) => {
 // The official way to configure the colors is with css classes but
 // having it as config like this is more handy and platform gated.
 function fixWindowsANSIColors(ansi_up) {
-    if (process.platform === 'win32') {
-        ansi_up.ansi_colors = [
-            // Normal colors
-            [
-                { rgb: [  0,   0,   0],  class_name: 'ansi-black'   },
-                { rgb: [187,   0,   0],  class_name: 'ansi-red'     },
-                { rgb: [  0, 187,   0],  class_name: 'ansi-green'   },
-                { rgb: [187, 187,   0],  class_name: 'ansi-yellow'  },
-                { rgb: [  0,   0, 187],  class_name: 'ansi-blue'    },
-                { rgb: [187,   0, 187],  class_name: 'ansi-magenta' },
-                { rgb: [  0, 187, 187],  class_name: 'ansi-cyan'    },
-                { rgb: [187, 187, 187],  class_name: 'ansi-white'   },
-            ],
-
-            // Bright colors as normal colors to prevent unreadable text
-            [
-                { rgb: [  0,   0,   0],  class_name: 'ansi-bright-black'   },
-                { rgb: [187,   0,   0],  class_name: 'ansi-bright-red'     },
-                { rgb: [  0, 187,   0],  class_name: 'ansi-bright-green'   },
-                { rgb: [187, 187,   0],  class_name: 'ansi-bright-yellow'  },
-                { rgb: [  0,   0, 187],  class_name: 'ansi-bright-blue'    },
-                { rgb: [187,   0, 187],  class_name: 'ansi-bright-magenta' },
-                { rgb: [  0, 187, 187],  class_name: 'ansi-bright-cyan'    },
-                // White is actually black since it will always be rendered on white background
-                { rgb: [  0,   0,   0],  class_name: 'ansi-bright-white'   },
-            ],
-        ];
-        ansi_up.setup_256_palette();
+    if (process.platform !== 'win32') {
+        return;
     }
+
+    ansi_up.ansi_colors = [
+        // Normal colors
+        [
+            { rgb: [  0,   0,   0],  class_name: 'ansi-black'   },
+            { rgb: [187,   0,   0],  class_name: 'ansi-red'     },
+            { rgb: [  0, 187,   0],  class_name: 'ansi-green'   },
+            { rgb: [187, 187,   0],  class_name: 'ansi-yellow'  },
+            { rgb: [  0,   0, 187],  class_name: 'ansi-blue'    },
+            { rgb: [187,   0, 187],  class_name: 'ansi-magenta' },
+            { rgb: [  0, 187, 187],  class_name: 'ansi-cyan'    },
+            { rgb: [187, 187, 187],  class_name: 'ansi-white'   },
+        ],
+
+        // Bright colors as normal colors to prevent unreadable text
+        [
+            { rgb: [  0,   0,   0],  class_name: 'ansi-bright-black'   },
+            { rgb: [187,   0,   0],  class_name: 'ansi-bright-red'     },
+            { rgb: [  0, 187,   0],  class_name: 'ansi-bright-green'   },
+            { rgb: [187, 187,   0],  class_name: 'ansi-bright-yellow'  },
+            { rgb: [  0,   0, 187],  class_name: 'ansi-bright-blue'    },
+            { rgb: [187,   0, 187],  class_name: 'ansi-bright-magenta' },
+            { rgb: [  0, 187, 187],  class_name: 'ansi-bright-cyan'    },
+            // White is actually black since it will always be rendered on white background
+            { rgb: [  0,   0,   0],  class_name: 'ansi-bright-white'   },
+        ],
+    ];
+    ansi_up.setup_256_palette();
 }

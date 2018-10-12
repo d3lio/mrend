@@ -28,6 +28,11 @@
                 "name": "watch",
                 "alias": "w",
                 "description": "When set it watches for changes in the input file and rebuilds the presentation."
+            },
+            {
+                "name": "debug",
+                "alias": "d",
+                "description": "When set mrend enters debug mode and doesn't cleanup. All of the temp files are in the bundle."
             }
         ]
     },

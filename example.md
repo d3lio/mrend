@@ -1,6 +1,7 @@
 ---
 title: Presentation
 author: myself
+date: 1/1/2018
 lang: en
 keywords: rust,fmi
 description: lecture about stuff
@@ -41,8 +42,8 @@ fn main() {
 
 ```rust
 # // norun
-struct A {
-    a: u32,
+struct A<T> {
+    a: T,
     b: Vec<Box<Iterator<Item=u8>>>
 }
 # fn main() {}

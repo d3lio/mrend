@@ -1,8 +1,7 @@
 const SUBSLIDE_PATTER = /^\s*?--\s*?\n/gm;
 
 module.exports = (_, utils) => ({
-    phase: 'extend',
-    run(slides) {
+    extend(slides) {
         return slides.reduce((acc, slide) => {
             const subslides = slide.content.split(SUBSLIDE_PATTER);
             const initial = subslides.length
