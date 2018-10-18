@@ -69,7 +69,7 @@ module.exports = (metadata, utils) => {
         pattern: /```rust([\s\S]*?)```/gm,
         run(_, code) {
             const show = code.replace(SHOW_PATTERN, '').trim();
-            const main = code.replace(MAIN_PATTERN, '').trim();
+            const main = code.replace(MAIN_PATTERN, '').replace(/\\`\\`\\`/gm, '```').trim();
 
             const template1 = `\`\`\`rust\n${show}\n\`\`\``;
             if (IGNORE_PATTERN.test(main)) {

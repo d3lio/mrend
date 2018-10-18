@@ -19,7 +19,7 @@ module.exports = () => ({
             <div class="code-block">
                 <div class="code-container">
                     <div class="line-numbers hljs">${lineNumbers}</div>
-                    ${code}
+                    ${code.replace(/\\`\\`\\`/gm, '```')}
                 </div>
                 ${rustcTemplate}
             </div>`;
