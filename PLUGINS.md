@@ -5,8 +5,8 @@ This is a **_draft_** guide on how to write plugins and what properties they hav
 # Overview
 
 Plugins are used to extend the functionalities of the core renderer. They are located under
-`src/plugins`. Each of them is registered in `src/plugins.json` in the order they should be
-loaded and executed.
+`src/plugins`. Each of them is registered in `src/plugins.json`, grouped by the phase they need to
+act upon and in the order they should be loaded and executed.
 
 The behaviour of registering is just like any other node module - they use their containing folder
 name while having an `index.js` inside or directly the name of the file if they don't need to have
@@ -52,9 +52,10 @@ Here is an example of such a file:
 // index.js
 
 module.exports = () => ({
-    phase: 'before',
-    pattern: /hello/gm,
-    run: () => 'hi',
+    before: {
+        pattern: /hello/gm,
+        replace: () => 'hi',
+    }
 });
 ```
 
@@ -62,30 +63,6 @@ The above plugin would replace any occurrences of `hello` with `hi` in the prese
 
 There are two types of plugins - native showdown plugins and mrend plugins.
 For now we're just going to look at the mrend plugins.
-
-### Phases
-
-Plugins have four phases: `resource`, `extend`, `before` and `after`. Each plugin must
-have exactly one phase.
-
-The `resource` phase does nothing other that registering resources. Any plugin can do that but
-for example you want to have some frontend scripts and do nothing else in the plugin. This phase
-will be perfect for that since it will register the frontend scripts and pass to the next plugin.
-
-The `extend` phase extends slides directly. You can add whole slides as markdown in this phase.
-The slides array is passed to the `run` function as first argument and the function is expected to
-return an array containing all the slides.
-Example usage would be to add wrapping slides like a speaker introduction or a Q&A slide.
-
-The `before` phase is a replace phase that runs before html generation. It translates to
-showdown's `lang` phase. It requires that `pattern` regex and `run` function are given.
-They work like `String.prototype.replace`. The pattern regex matches agains the markdown slides and
-when a match is found the `run` function is executed with the whole match as a first argument and
-each capture groups is given in order as the next arguments. You need to return a string that is
-the replacement for the match.
-
-The `after` phase is similar to `before` but instead of executing before html generation it executes
-after it. It works on the same principle and maps to showdown's `output` phase.
 
 ### Resources
 
@@ -157,7 +134,6 @@ the actual execution.
 module.exports = (metadata, utils) => {
     console.log('Initializing my-plugin.');
     console.log('node_modules path:', utils.MODULES_DIR);
-    console.log('Bundle output path:', utils.BUNDLE_DIR);
     // ...
 };
 ```
@@ -167,7 +143,8 @@ module.exports = (metadata, utils) => {
 `showdownjs` provides a plugin system of its own which the `mrend` plugins utilize. You can use the
 existing showdown plugin ecosystem by creating an external mrend plugin. Note that this is the
 only plugin type that doesn't have an mrend phase. Its execution order is determined by whether
-it's a `lang` or an `output` plugin and it's position in the `plugin.json` file.
+it's a `lang` or an `output` plugin and it's position in the `plugin.json` file. External plugins
+are always executed before regular mrend plugins.
 
 ```js
 module.exports = () => ({
