@@ -5,7 +5,7 @@ const ansi_up = new (require('ansi_up').default)();
 fixWindowsANSIColors(ansi_up);
 
 const CODE_BLOCK_PATTERN = /```rust([\s\S]*?)```/gm;
-const NO_SHOW_PATTERN = /^# .*$/gm;
+const NO_SHOW_PATTERN = /^#(?: .*)?\n/gm;
 const HIDDEN_PATTERN = /^#\s*/gm;
 const IGNORE_PATTERN = /^\/\/ *ignore/m;
 const NORUN_PATTERN = /^\/\/ *norun/m;
