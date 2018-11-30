@@ -128,14 +128,19 @@ module.exports = (metadata, utils) => {
             });
         }
 
+        const copySource = main.startsWith('//') ? main.replace(/^.*\n/m, '') : main;
+        const copy = `<div class="btn rustc-copy" data-sha="${sha}">${utils.i18n('copy')}</div>
+<pre class="rustc-source" data-sha="${sha}">${copySource}</pre>`;
+
         if (!result) {
-            return template;
+            return `${template}\n${copy}`;
         }
 
-        return template + `<pre>rustc-cache(${sha})</pre>`;
+        return `${template}\n<pre><div class="rustc hljs">rustc-cache(${sha})</div></pre>\n${copy}`;
     }
 
     return {
+        resources: ['rustc.css'],
         extend(slides) {
             slides.forEach(slide => {
                 slide.content = slide.content.replace(CODE_BLOCK_PATTERN, (_, code) => {
@@ -148,7 +153,7 @@ module.exports = (metadata, utils) => {
         after: {
             pattern: /rustc-cache\((.*?)\)/gm,
             replace(_, sha) {
-                return `<div class="rustc hljs">${codeToResult.get(sha).result}</div>`;
+                return codeToResult.get(sha).result.toString();
             },
         },
         cleanup() {

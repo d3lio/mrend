@@ -26,8 +26,6 @@ module.exports = (metadata, utils) => {
                     code = hljs.highlight(lang, unescape(code)).value;
                 }
 
-                // hljs escapes twice for some reason.
-                code = code.replace(/&amp;/g, '&');
                 return `<pre><code class="${lang}${meta} hljs">${code}</code></pre>`;
             },
         },

@@ -1,0 +1,24 @@
+button.rustc-copy {
+    display: none;
+
+    margin: 0.15rem;
+    padding: 0.35rem 1.2rem;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+    text-align: center;
+    font-size: initial;
+}
+
+div.code-block:hover > button.rustc-copy, button.rustc-copy:hover {
+    display: inline-block;
+
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+
+    opacity: 0.7;
+}
+
+pre.rustc-source {
+    display: none;
+}
