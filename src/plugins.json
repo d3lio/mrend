@@ -5,6 +5,7 @@
         "global",
         "highlight",
         "katex",
+        "rustc",
         "splitview",
         "wrapping-pages"
     ],
@@ -22,9 +23,9 @@
     ],
 
     "after": [
-        "rustc",
         "highlight",
-        "codeblock"
+        "codeblock",
+        "rustc"
     ],
 
     "cleanup": [
