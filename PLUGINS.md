@@ -20,9 +20,8 @@ Each plugin can be registered for multiple phases but only once per phase.
 The `external` phase registers an external showdown plugin.
 Read the external plugins section for more information.
 
-The `resource` phase does nothing other that registering resources. Any plugin can do that but
-for example you want to have some frontend scripts and do nothing else in the plugin. This phase
-will be perfect for that since it will register the frontend scripts and pass to the next plugin.
+The `resource` phase does nothing other that registering resources.
+If your plugin is using some frontend scripts or styles you need to add it to this phase.
 
 The `extend` phase extends slides directly. You can add whole slides as markdown in this phase.
 The slides array is passed to the `extend` function as first argument and the function is expected
@@ -67,16 +66,18 @@ For now we're just going to look at the mrend plugins.
 ### Resources
 
 Most of the time you'd want to have additional styling or some other resource with your plugin.
-To add a resource you need to put it somewhere relative to your plugin main file.
+Firstly register the plugin for the `resource` phase. To add a resource you need to put it in the
+plugin's `dist` directory.
 Take this structure for example:
 
 ```
 my-plugin/
 └─ index.js
-└─ my-plugin-style.css
+└─ dist/
+   └─ my-plugin-style.css
 ```
 
-How you would register the resource would be:
+How you would register the resource itself would be:
 
 ```js
 module.exports = () => ({
@@ -87,19 +88,14 @@ module.exports = () => ({
 
 Everything else around linking css or js would be handled by the core functionality.
 
-You can also provide a lookup directory. This is useful if you want to organize your plugin.
-
-```
-my-plugin/
-└─ index.js
-└─ resources/
-   └─ my-plugin-style.css
-```
+You can override the `dist` directory by using
 
 ```js
 module.exports = () => ({
-    resources: ['my-plugin-style.css'],
-    resourcesLookup: 'resources',
+    resources: {
+        links: ['my-plugin-style.css'],
+        dist: 'styles',
+    },
     // ...
 });
 ```
@@ -130,10 +126,53 @@ inside the exported function. This can be useful if you need to move resource fi
 the actual execution.
 
 ```js
-
 module.exports = (metadata, utils) => {
     console.log('Initializing my-plugin.');
     console.log('node_modules path:', utils.MODULES_DIR);
+    // ...
+};
+```
+
+### Locales
+
+The system supports locale files which look like this
+
+```json
+{
+    "<language>": {
+        "<key>": "<value>",
+        ...
+    },
+    ...
+}
+```
+
+Here's an example locale file
+
+```json
+{
+    "en": {
+        "hello": "Hello"
+    },
+    "bg": {
+        "hello": "Здравей"
+    }
+}
+```
+
+You should set the `lang` metadata property in your presentation
+
+```md
+---
+lang: en
+---
+```
+
+And use the locale service
+
+```js
+module.exports = (metadata, utils) => {
+    console.log(utils.i18n('hello'), 'world!');
     // ...
 };
 ```
