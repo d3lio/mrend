@@ -34,7 +34,10 @@ function deserialize(obj, dir) {
 }
 
 module.exports = (metadata, utils) => {
-    const srcDir = utils.bundle.resources.mkdirSync('src');
+    const projectDir = utils.bundle.resources;
+    const srcDir = projectDir.mkdirSync('src');
+    const binDir = srcDir.mkdirSync('bin');
+    const targetDir = projectDir.mkdirSync('target');
     const logDir = utils.bundle.cache.mkCacheDirSync('logs');
 
     const codeToResult = utils.bundle.cache.existsSync(CACHE_FILE_NAME)
@@ -49,12 +52,36 @@ module.exports = (metadata, utils) => {
         'dead_code',
     ];
 
-    const nightlyTc = metadata['rustc-nightly-tc'] || 'nightly';
+    const cargoToml = [
+        '[package]',
+        'name = "rust"',
+        'version = "0.1.0"',
+        'authors = []',
+        '',
+        '[dependencies]',
+    ]
+        .concat(metadata['cargo-deps'])
+        .join('\n');
+
+    projectDir.writeFileSync('Cargo.toml', cargoToml);
+
+    srcDir.writeFileSync('lib.rs', '');
+
+    const warningFlags = warnings.map((w) => `"-A", "${w}"`).join(', ');
+    const cargoConfig = [
+        '[build]',
+        `rustflags = [${warningFlags}]`,
+    ].join('\n');
+
+    projectDir.mkdirSync('.cargo').writeFileSync('config', cargoConfig);
+
     const config = {
-        typeCheckCmd: `rustup run ${nightlyTc} rustc`,
-        runCmd: 'rustc',
-        commonArgs: `--color=always -A ${warnings.join(' -A ')}`,
+        typeCheckCmd: 'cargo check',
+        buildCmd: 'cargo rustc',
+        runCmd: 'cargo run',
+        cargoArgs: '--quiet --color=always --frozen',
         processOpts: {
+            cwd: projectDir.name,
             timeout: 5000,
         },
     };
@@ -62,7 +89,7 @@ module.exports = (metadata, utils) => {
     function typeCheck(file) {
         try {
             return child_process.execSync(
-                `${config.typeCheckCmd} ${file} ${config.commonArgs} -Zno-codegen 2>&1`,
+                `${config.typeCheckCmd} ${config.cargoArgs} --bin ${file} 2>&1`,
                 config.processOpts
             );
         } catch (e) {
@@ -74,14 +101,14 @@ module.exports = (metadata, utils) => {
         try {
             // Compile the Rust source
             const result = child_process.execSync(
-                `${config.runCmd} ${file} ${config.commonArgs} -o ${file}.exe 2>&1`,
+                `${config.buildCmd} ${config.cargoArgs} --bin ${file} 2>&1`,
                 config.processOpts
             );
             if (result.length) return result;
 
             // Execute the compiled binary
             return child_process.execSync(
-                `${file}.exe 2>&1`,
+                `${config.runCmd} ${config.cargoArgs} --bin ${file} 2>&1`,
                 config.processOpts
             );
         } catch (e) {
@@ -104,11 +131,12 @@ module.exports = (metadata, utils) => {
         if (codeToResult.has(sha)) {
             result = codeToResult.get(sha).result.toString();
         } else {
-            const fileName = srcDir.writeFileSync(`main_${sha}.rs`, main);
+            const file = `main_${sha}`;
+            binDir.writeFileSync(`${file}.rs`, main);
 
             result = (NORUN_PATTERN.test(main)
-                ? typeCheck(fileName)
-                : run(fileName)
+                ? typeCheck(file)
+                : run(file)
             );
             result = result.toString().trim();
             result = ansi_up.ansi_to_html(result);
@@ -116,7 +144,7 @@ module.exports = (metadata, utils) => {
                 const reResut = ERROR_PATTERN.exec(result);
                 const temp = reResut ? result.slice(0, reResut.index) : result;
                 // Escape Windows paths.
-                const escaped = srcDir.name.replace(/\\/g, '\\\\');
+                const escaped = binDir.name.replace(/\\/g, '\\\\');
                 return temp.replace(new RegExp(escaped, 'g'), '');
             }());
 
@@ -139,9 +167,24 @@ module.exports = (metadata, utils) => {
         return `${template}\n<pre><div class="rustc hljs">rustc-cache(${sha})</div></pre>\n${copy}`;
     }
 
+    function compileDeps() {
+        console.info('compiling cargo dependencies');
+
+        // Don't set a timeout for `cargo build` because it can take a long time.
+        const opts = { ...config.processOpts, stdio: 'pipe', timeout: null };
+
+        try {
+            child_process.execSync('cargo build 2>&1', opts);
+        } catch (e) {
+            console.error('error while compiling cargo dependencies:\n' + e.stdout.toString());
+        }
+    }
+
     return {
         resources: ['rustc.css'],
         extend(slides) {
+            compileDeps();
+
             slides.forEach(slide => {
                 slide.content = slide.content.replace(CODE_BLOCK_PATTERN, (_, code) => {
                     return compile(code);
@@ -157,7 +200,8 @@ module.exports = (metadata, utils) => {
             },
         },
         cleanup() {
-            srcDir.removeSync();
+            binDir.removeSync();
+            targetDir.removeSync();
         },
     };
 };
