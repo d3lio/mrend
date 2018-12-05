@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const showdown = require('showdown');
+const yaml = require('yaml');
 
 const Bundle = require('./bundle').Bundle;
 const PluginsManager = require('./plugins-manager');
@@ -11,7 +12,6 @@ class Codegen {
         this.pluginsManager = new PluginsManager();
 
         this.input = options.input.filename;
-        this.metadataConverter = new showdown.Converter({ metadata: true });
     }
 
     run() {
@@ -53,13 +53,13 @@ class Codegen {
     parseMetadata() {
         console.info('parsing metadata');
 
-        this.metadataConverter.makeHtml(`---\n${this.slides[0].content}\n---`);
+        const slidesMeta = yaml.parse(`${this.slides[0].content}`);
 
         const optionsMeta = {
             'options-debug': this.options.debug,
         };
         const metadata = Object.freeze(
-            Object.assign({}, optionsMeta, this.metadataConverter.getMetadata())
+            Object.assign({}, optionsMeta, slidesMeta)
         );
 
         this.slides = this.slides.slice(1);
