@@ -6,7 +6,7 @@ fixWindowsANSIColors(ansi_up);
 
 const CODE_BLOCK_PATTERN = /```rust([\s\S]*?)```/gm;
 const NO_SHOW_PATTERN = /^#(?: .*)?\n/gm;
-const HIDDEN_PATTERN = /^#\s*/gm;
+const HIDDEN_PATTERN = /^#$|#\s+/gm;
 const IGNORE_PATTERN = /^\/\/ *ignore/m;
 const NORUN_PATTERN = /^\/\/ *norun/m;
 const ERROR_PATTERN = /\n\n.*aborting due to/m;
