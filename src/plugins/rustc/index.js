@@ -121,9 +121,9 @@ module.exports = (metadata, utils) => {
         const main = code.replace(HIDDEN_PATTERN, '').replace(/\\`\\`\\`/gm, '```').trim();
         const sha = sha1(main);
 
-        const template = `\`\`\`rust\n${show}\n\`\`\``;
+        const codeBlockTemplate = `\`\`\`rust\n${show}\n\`\`\``;
         if (IGNORE_PATTERN.test(main)) {
-            return template;
+            return codeBlockTemplate;
         }
 
         let result;
@@ -157,14 +157,15 @@ module.exports = (metadata, utils) => {
         }
 
         const copySource = main.startsWith('//') ? main.replace(/^.*\n/m, '') : main;
-        const copy = `<div class="btn rustc-copy" data-sha="${sha}">${utils.i18n('copy')}</div>
-<pre class="rustc-source" data-sha="${sha}">${copySource}</pre>`;
+        const hiddenSource = `<pre class="rustc-source" data-sha="${sha}">${copySource}</pre>`;
 
         if (!result) {
-            return `${template}\n${copy}`;
+            return `${codeBlockTemplate}\n${hiddenSource}`;
         }
 
-        return `${template}\n<pre><div class="rustc hljs">rustc-cache(${sha})</div></pre>\n${copy}`;
+        const rustcOutput = `<pre><div class="rustc hljs">rustc-cache(${sha})</div></pre>`;
+
+        return `${codeBlockTemplate}\n${rustcOutput}\n${hiddenSource}`;
     }
 
     function compileDeps() {
