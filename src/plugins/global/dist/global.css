@@ -16,6 +16,7 @@ div.slide {
 img {
     display: flex;
     margin: 0 auto;
+    max-width: 100%;
 }
 
 table {
