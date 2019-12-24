@@ -1,3 +1,8 @@
+body {
+    /* Needed for a bigger gestures-recognition area */
+    min-height: 80vh;
+}
+
 nav {
     display: flex;
     justify-content: space-between;
