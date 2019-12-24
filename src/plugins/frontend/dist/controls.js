@@ -10,6 +10,22 @@
         DOWN: 40,
     };
 
+    // Number of pixels the finger has to move in order for
+    // the event to be considered a swipe.
+    const SWIPE_DISTANCE_THRESHOLD = 80;
+    // Milliseconds before which the gesture is NOT considered
+    // a swipe.
+    const SWIPE_TIMEOUT_MS = 200;
+    // Velocity (distance / time) after which the gesture
+    // is considered a swipe.
+    const SWIPE_SPEED_THRESHOLD = 40;
+
+    // Range within the gesture can be considered a tap.
+    const TAP_DISTANCE_THRESHOLD = 20;
+    // Milliseconds after which the gestuer is considered NOT
+    // a tap.
+    const TAP_TIMEOUT_MS = 150;
+
     function initNavBar() {
         function linkControl(text, controlKey) {
             const link = document.createElement('a');
@@ -172,5 +188,87 @@
                     break;
             }
         });
+
+        const reduceEvent = function(event) {
+            if (event.changedTouches.length === 0) {
+                return null;
+            }
+            return {
+                x: event.changedTouches[0].screenX,
+                y: event.changedTouches[0].screenY,
+                time: new Date().getTime(),
+            };
+        };
+        const controlElement = document.body;
+        // NOTICE: IE 9 does not support event-handler options.
+        const startEvtOpts = { passive: true };
+        controlElement.addEventListener('touchstart', function(startEvt) {
+            const start = reduceEvent(startEvt);
+
+            const endEvtOpts = { once: true, passive: true };
+            controlElement.addEventListener('touchend', function(endEvt) {
+                const end = reduceEvent(endEvt);
+
+                // Lack of information - exit.
+                //
+                // Under Firefox Developer Edition (72.0) on
+                // Arch Linux, the `touchend` event does not
+                // have `changedList` elements.
+                if (start == null || end == null) {
+                    console.warn("event was null", { start, end });
+                    return;
+                }
+
+                const motion = {
+                    start,
+                    end,
+                    get distance() {
+                        return Math.sqrt(
+                            Math.pow((this.end.x - this.start.x), 2) +
+                            Math.pow((this.end.y - this.start.y), 2)
+                        );
+                    },
+                    get distanceX() {
+                        return Math.abs(this.end.x - this.start.x);
+                    },
+                    get duration() {
+                        return this.end.time - this.start.time;
+                    },
+                    get isSwipe() {
+                        return (this.duration <= SWIPE_TIMEOUT_MS && this.distanceX > SWIPE_DISTANCE_THRESHOLD) ||
+                            (this.distanceX / this.duration > SWIPE_SPEED_THRESHOLD);
+                    },
+                    get swipeDirection() {
+                        if (this.start.x < this.end.x) {
+                            return 'left';
+                        }
+                        if (this.start.x > this.end.x) {
+                            return 'right';
+                        }
+                    },
+                    get isTap() {
+                        return this.distance < TAP_DISTANCE_THRESHOLD &&
+                            this.duration < TAP_TIMEOUT_MS;
+                    },
+                };
+                if (motion.isSwipe) {
+                    switch (motion.swipeDirection) {
+                        case 'left':
+                            controls.currentSlide -= 1;
+                            return;
+                        case 'right':
+                            controls.currentSlide += 1;
+                            return;
+                    }
+                }
+                if (motion.isTap) {
+                    if (motion.start.x > window.screen.width / 2) {
+                        controls.currentSlide += 1;
+                    } else {
+                        controls.currentSlide -= 1;
+                    }
+                }
+            }, endEvtOpts);
+        }, startEvtOpts);
     });
 }());
