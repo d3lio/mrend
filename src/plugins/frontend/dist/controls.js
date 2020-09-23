@@ -61,6 +61,27 @@
     }
 
     window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('animations') === 'false') {
+            let slideGroups = [];
+
+            document.body.querySelectorAll('div.slide').forEach(function(slide) {
+                if (slide.classList.contains('subslide')) {
+                    // add it to the currently-tracked group
+                    slideGroups[slideGroups.length - 1].push(slide);
+                } else {
+                    // initialize a new group
+                    slideGroups.push([slide]);
+                }
+            });
+
+            for (let slides of slideGroups) {
+                // only keep the last slide of each group
+                slides.pop();
+                slides.forEach(s => s.remove());
+            }
+        }
+
         const controls = (function() {
             const slides = Array.prototype.slice.call(document.body.querySelectorAll('div.slide'));
             const concreteSlides = slides.filter(slide => !slide.classList.contains('subslide'));
