@@ -20,6 +20,7 @@
     "js-sha1": "^0.6.0",
     "katex": "^0.10.0-beta",
     "showdown": "^1.8.6",
+    "tree-sitter-hl": "git://github.com/nikolads/tree-sitter-hl.git",
     "yaml": "^1.0.3"
   }
 }
