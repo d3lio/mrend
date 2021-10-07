@@ -12,7 +12,7 @@
     "build": "node src"
   },
   "dependencies": {
-    "ansi_up": "^3.0.0",
+    "ansi_up": "^5.0.0",
     "command-line-args": "^5.0.2",
     "command-line-usage": "^5.0.5",
     "fs-extra": "^7.0.0",
