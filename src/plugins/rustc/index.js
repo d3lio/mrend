@@ -2,7 +2,7 @@ const child_process = require('child_process');
 const sha1 = require('js-sha1');
 const ansi_up = new (require('ansi_up').default)();
 
-fixWindowsANSIColors(ansi_up);
+setANSIColorsPalette(ansi_up);
 
 const CODE_BLOCK_PATTERN = /```rust([\s\S]*?)```/gm;
 const NO_SHOW_PATTERN = /^#(?: .*)?\n/gm;
@@ -208,37 +208,32 @@ module.exports = (metadata, utils) => {
     };
 };
 
-// Windows only change to ANSI colors since rustc produces some
-// bizarre colors for the platform.
+// Set up the same color palette on all platforms.
 // The official way to configure the colors is with css classes but
-// having it as config like this is more handy and platform gated.
-function fixWindowsANSIColors(ansi_up) {
-    if (process.platform !== 'win32') {
-        return;
-    }
-
+// having it as config like this is more handy.
+function setANSIColorsPalette(ansi_up) {
     ansi_up.ansi_colors = [
         // Normal colors
         [
             { rgb: [  0,   0,   0],  class_name: 'ansi-black'   },
-            { rgb: [187,   0,   0],  class_name: 'ansi-red'     },
-            { rgb: [  0, 187,   0],  class_name: 'ansi-green'   },
-            { rgb: [187, 187,   0],  class_name: 'ansi-yellow'  },
-            { rgb: [  0,   0, 187],  class_name: 'ansi-blue'    },
-            { rgb: [187,   0, 187],  class_name: 'ansi-magenta' },
-            { rgb: [  0, 187, 187],  class_name: 'ansi-cyan'    },
+            { rgb: [255,  85,  85],  class_name: 'ansi-red'     },
+            { rgb: [ 85, 187,  85],  class_name: 'ansi-green'   },
+            { rgb: [187, 187,  85],  class_name: 'ansi-yellow'  },
+            { rgb: [ 85,  85, 255],  class_name: 'ansi-blue'    },
+            { rgb: [187,  85, 187],  class_name: 'ansi-magenta' },
+            { rgb: [ 85, 187, 187],  class_name: 'ansi-cyan'    },
             { rgb: [187, 187, 187],  class_name: 'ansi-white'   },
         ],
 
         // Bright colors as normal colors to prevent unreadable text
         [
             { rgb: [  0,   0,   0],  class_name: 'ansi-bright-black'   },
-            { rgb: [187,   0,   0],  class_name: 'ansi-bright-red'     },
-            { rgb: [  0, 187,   0],  class_name: 'ansi-bright-green'   },
-            { rgb: [187, 187,   0],  class_name: 'ansi-bright-yellow'  },
-            { rgb: [  0,   0, 187],  class_name: 'ansi-bright-blue'    },
-            { rgb: [187,   0, 187],  class_name: 'ansi-bright-magenta' },
-            { rgb: [  0, 187, 187],  class_name: 'ansi-bright-cyan'    },
+            { rgb: [255,  85,  85],  class_name: 'ansi-bright-red'     },
+            { rgb: [ 85, 187,  85],  class_name: 'ansi-bright-green'   },
+            { rgb: [187, 187,  85],  class_name: 'ansi-bright-yellow'  },
+            { rgb: [ 85,  85, 255],  class_name: 'ansi-bright-blue'    },
+            { rgb: [187,  85, 187],  class_name: 'ansi-bright-magenta' },
+            { rgb: [ 85, 187, 187],  class_name: 'ansi-bright-cyan'    },
             // White is actually black since it will always be rendered on white background
             { rgb: [  0,   0,   0],  class_name: 'ansi-bright-white'   },
         ],
