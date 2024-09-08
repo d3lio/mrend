@@ -74,7 +74,7 @@ module.exports = (metadata, utils) => {
         `rustflags = [${warningFlags}]`,
     ].join('\n');
 
-    projectDir.mkdirSync('.cargo').writeFileSync('config', cargoConfig);
+    projectDir.mkdirSync('.cargo').writeFileSync('config.toml', cargoConfig);
 
     const config = {
         typeCheckCmd: 'cargo check',
