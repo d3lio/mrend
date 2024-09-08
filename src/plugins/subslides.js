@@ -1,4 +1,4 @@
-const SUBSLIDE_PATTER = /^\s*?--\s*?\n/gm;
+const SUBSLIDE_PATTER = /^[ \t]*--[ \t]*\n/gm;
 
 module.exports = (_, utils) => ({
     extend(slides) {
